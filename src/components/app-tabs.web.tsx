@@ -8,12 +8,12 @@ import { t } from '@/i18n/sk';
 import { Icon, type IconName } from './icon';
 import { ThemedText } from './themed-text';
 
-const TABS: { name: string; href: '/' | '/calendar' | '/tasks' | '/notes' | '/habits'; label: string; icon: IconName }[] = [
+const TABS: { name: string; href: '/' | '/calendar' | '/tasks' | '/notes' | '/focus'; label: string; icon: IconName }[] = [
   { name: 'index', href: '/', label: t.tabs.today, icon: 'today' },
   { name: 'calendar', href: '/calendar', label: t.tabs.calendar, icon: 'calendar' },
   { name: 'tasks', href: '/tasks', label: t.tabs.tasks, icon: 'task' },
   { name: 'notes', href: '/notes', label: t.tabs.notes, icon: 'note' },
-  { name: 'habits', href: '/habits', label: t.tabs.habits, icon: 'habit' },
+  { name: 'focus', href: '/focus', label: t.tabs.focus, icon: 'timer' },
 ];
 
 export default function AppTabs() {

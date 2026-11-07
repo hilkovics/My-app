@@ -179,3 +179,24 @@ export function startNotificationSync(db: Db, openItem: (id: string) => void): (
     response.remove();
   };
 }
+
+/** One-off notification with a fixed id (replaces an earlier one with the same id). */
+export async function scheduleFixedNotification(id: string, at: number, title: string, body?: string): Promise<void> {
+  if (!supported) return;
+  await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+  if (at <= Date.now() || !(await hasPermission())) return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: id,
+    content: { title, body, sound: true },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: at,
+      channelId: Platform.OS === 'android' ? CHANNEL : undefined,
+    },
+  });
+}
+
+export async function cancelFixedNotification(id: string): Promise<void> {
+  if (!supported) return;
+  await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+}

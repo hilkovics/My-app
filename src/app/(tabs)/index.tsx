@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ItemRow, OccurrenceRow } from '@/components/item-row';
+import { Meter } from '@/components/meter';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Empty, Fab, IconButton, Row, Screen, Section } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
@@ -9,7 +10,10 @@ import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import { useOccurrences } from '@/features/calendar/use-occurrences';
 import { getHabitLogs, listHabits, logHabit } from '@/features/habits/repository';
 import { computeStreak, isScheduled } from '@/features/habits/stats';
+import { getRunningSession, listSessions } from '@/features/focus/repository';
+import { fmtMinutes, sessionDuration } from '@/features/focus/stats';
 import { checklistProgress, getOrCreateJournal, listPinnedNotes, listTasks } from '@/features/items/repository';
+import { getSettings } from '@/features/settings/repository';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { addDays, fmtDateLong, startOfDay, ymd } from '@/lib/dates';
@@ -23,6 +27,15 @@ export default function TodayScreen() {
   const tasks = useLiveQuery((d) => listTasks(d, 'today', now), [day]) ?? [];
   const progress = useLiveQuery((d) => checklistProgress(d), []);
   const pinned = useLiveQuery((d) => listPinnedNotes(d), []) ?? [];
+  const focus = useLiveQuery(
+    async (d) => ({
+      running: await getRunningSession(d),
+      sessions: await listSessions(d, day, addDays(day, 1)),
+      goal: (await getSettings(d)).focusGoalMinutes,
+    }),
+    [day],
+  );
+  const focusMinutes = (focus?.sessions ?? []).reduce((a, s) => a + sessionDuration(s, now), 0) / 60_000;
   const habitData = useLiveQuery(
     async (d) => {
       const habits = (await listHabits(d)).filter((h) => isScheduled(h, day));
@@ -57,6 +70,23 @@ export default function TodayScreen() {
           )}
         </Card>
       </Section>
+
+      {focus ? (
+        <Pressable accessibilityRole="button" onPress={() => router.navigate('/focus')}>
+          <Card>
+            <Row style={styles.between}>
+              <ThemedText type="smallBold">
+                {focus.running ? `⏱ ${t.focus.running}` : `${t.tabs.focus} ${t.focus.today.toLowerCase()}`}
+                {focus.running?.itemTitle ? ` · ${focus.running.itemTitle}` : ''}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {fmtMinutes(focusMinutes)} {t.focus.of} {fmtMinutes(focus.goal)}
+              </ThemedText>
+            </Row>
+            <Meter value={focusMinutes / focus.goal} />
+          </Card>
+        </Pressable>
+      ) : null}
 
       <Section title={t.today.tasks}>
         {tasks.length ? (
@@ -113,6 +143,7 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
+  between: { justifyContent: 'space-between', flexWrap: 'nowrap' },
   habit: {
     borderWidth: 1.5,
     borderRadius: Radius.md,

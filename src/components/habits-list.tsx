@@ -1,8 +1,6 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { Card, Empty, Fab, IconButton, Screen } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import { getHabitLogs, listHabits, logHabit } from '@/features/habits/repository';
@@ -11,7 +9,11 @@ import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { WEEKDAYS_SHORT, addDays, startOfDay, weekdayIndex, ymd } from '@/lib/dates';
 
-export default function HabitsScreen() {
+import { ThemedText } from './themed-text';
+import { Button, Card, Empty } from './ui';
+
+/** Habit cards with a 7-day strip; tap a day to log, long press to undo. */
+export function HabitsList() {
   const db = useDb();
   const theme = useTheme();
   const now = useNow();
@@ -26,10 +28,13 @@ export default function HabitsScreen() {
   );
 
   return (
-    <Screen
-      title={t.tabs.habits}
-      actions={<IconButton name="settings" label={t.common.settings} onPress={() => router.push('/settings')} />}
-      fab={<Fab label={t.habits.new} onPress={() => router.push({ pathname: '/habit/[id]', params: { id: 'new' } })} />}>
+    <>
+      <Button
+        variant="secondary"
+        icon="add"
+        label={t.habits.new}
+        onPress={() => router.push({ pathname: '/habit/[id]', params: { id: 'new' } })}
+      />
       {data && !data.habits.length ? <Empty text={t.habits.empty} /> : null}
       {data?.habits.map((h) => {
         const logs = data.logs.get(h.id);
@@ -86,7 +91,7 @@ export default function HabitsScreen() {
           </Card>
         );
       })}
-    </Screen>
+    </>
   );
 }
 

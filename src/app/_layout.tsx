@@ -6,6 +6,7 @@ import { AppState, Platform, useColorScheme } from 'react-native';
 import { useDb } from '@/db/hooks';
 import { migrate } from '@/db/schema';
 import type { Db } from '@/db/types';
+import { finishDueFocus } from '@/features/focus/controller';
 import {
   configureNotifications,
   rescheduleAll,
@@ -26,9 +27,13 @@ function AppServices() {
       await configureNotifications();
       stop = startNotificationSync(db, (id) => router.push({ pathname: '/item/[id]', params: { id } }));
       await rescheduleAll(db);
+      await finishDueFocus(db);
     })().catch((e) => console.warn('notifications', e));
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') void rescheduleAll(db).catch(() => {});
+      if (s === 'active') {
+        void rescheduleAll(db).catch(() => {});
+        void finishDueFocus(db).catch(() => {});
+      }
     });
     return () => {
       stop();
@@ -52,6 +57,7 @@ export default function RootLayout() {
           <Stack.Screen name="event/notes" options={{ title: 'Poznámky' }} />
           <Stack.Screen name="external/[id]" options={{ title: 'Udalosť z telefónu' }} />
           <Stack.Screen name="habit/[id]" options={{ title: 'Návyk' }} />
+          <Stack.Screen name="focus/pick" options={{ title: 'Na čom pracuješ', presentation: 'modal' }} />
           <Stack.Screen name="search" options={{ title: 'Hľadať' }} />
           <Stack.Screen name="settings" options={{ title: 'Nastavenia' }} />
         </Stack>

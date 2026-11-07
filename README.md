@@ -18,7 +18,17 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 | **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
 | **Úlohy** | Inbox, Dnes, Naplánované, Hotové. Rýchle pridávanie po slovensky. Opakované úlohy sa po splnení posunú na ďalší termín |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
-| **Návyky** | Denné odškrtávanie (aj viackrát za deň), vybrané dni v týždni, séria 🔥, úspešnosť za 30 dní, mesačná história |
+| **Fokus** | Meranie sústredenej práce (stopky alebo Pomodoro 25/50/90 min s prestávkou), priradenie k úlohe/udalosti a štítku, štatistiky a **návyky** (denné odškrtávanie, séria 🔥, úspešnosť za 30 dní) |
+
+### Fokus (sústredená práca)
+
+- **Stopky** bežia, kým ich nezastavíš; **Pomodoro** (25/50/90 min) skončí samo, pošle notifikáciu a ponúkne prestávku.
+- Pauza, pokračovanie, čas sa ukladá do databázy, takže časovač prežije aj zatvorenie aplikácie.
+- Čas priradíš k **úlohe alebo udalosti** (▶ Spustiť fokus priamo v detaile) a ku **štítku / predmetu**
+  (štítok sa prevezme z úlohy). V detaile úlohy vidíš, koľko si na nej odpracoval.
+- **Štatistiky:** graf po dňoch (týždeň/mesiac) s čiarou denného cieľa, spolu, priemer, najlepší deň,
+  **séria dní so splneným cieľom 🔥** a **kedy pracuješ najlepšie** (rozloženie podľa hodín za 30 dní).
+- Obrazovka Dnes ukazuje bežiaci časovač a dnešný pokrok voči cieľu. Záznamy kratšie ako 1 minúta sa zahodia.
 
 ### Poznámky k udalostiam
 
@@ -83,6 +93,7 @@ src/
     calendar/               # rozvinutie opakovaní, rozloženie dňa, kalendár telefónu
     notifications/          # výpočet časov upozornení + plánovanie cez expo-notifications
     habits/                 # repozitár a štatistiky (séria, úspešnosť)
+    focus/                  # sedenia, ovládač časovača (notifikácie), štatistiky
     quickadd/parse.ts       # slovenský parser rýchleho pridávania
     backup/                 # JSON záloha, .ics export
     settings/

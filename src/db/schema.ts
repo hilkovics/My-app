@@ -110,6 +110,24 @@ export const MIGRATIONS: string[] = [
   CREATE UNIQUE INDEX idx_event_notes_occ ON event_notes(source, event_id, occurrence_start);
   CREATE INDEX idx_event_notes_event ON event_notes(source, event_id);
   `,
+  // v3: focus (deep work) sessions
+  `
+  CREATE TABLE focus_sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    mode TEXT NOT NULL CHECK (mode IN ('stopwatch', 'pomodoro')),
+    started_at INTEGER NOT NULL,
+    ended_at INTEGER,
+    planned_minutes INTEGER,
+    paused_at INTEGER,
+    paused_ms INTEGER NOT NULL DEFAULT 0,
+    item_id TEXT REFERENCES items(id) ON DELETE SET NULL,
+    tag TEXT,
+    note TEXT NOT NULL DEFAULT ''
+  );
+  CREATE INDEX idx_focus_started ON focus_sessions(started_at);
+  CREATE INDEX idx_focus_item ON focus_sessions(item_id);
+  CREATE UNIQUE INDEX idx_focus_running ON focus_sessions((1)) WHERE ended_at IS NULL;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -28,6 +28,9 @@ import {
   unlinkItems,
   updateItem,
 } from '@/features/items/repository';
+import { startFocus } from '@/features/focus/controller';
+import { itemFocusMinutes } from '@/features/focus/repository';
+import { fmtMinutes } from '@/features/focus/stats';
 import { getEventLinkForNote, listSeriesNotes } from '@/features/items/event-notes';
 import { ALERT_PRESETS, describeOffset } from '@/features/notifications/plan';
 import { hasPermission, requestPermission, supported as notificationsSupported } from '@/features/notifications/scheduler';
@@ -79,6 +82,7 @@ export default function ItemScreen() {
   const external = useLiveQuery((d) => getExternalLink(d, id), [id]);
   const eventLink = useLiveQuery((d) => getEventLinkForNote(d, id), [id]);
   const eventNotes = useLiveQuery((d) => listSeriesNotes(d, 'local', id), [id]) ?? [];
+  const focusMinutes = useLiveQuery((d) => itemFocusMinutes(d, id), [id]) ?? 0;
   const settings = useLiveQuery((d) => getSettings(d), []);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [newEntry, setNewEntry] = useState('');
@@ -242,6 +246,26 @@ export default function ItemScreen() {
             <Input value={draft.title} onChangeText={(title) => patch({ title })} placeholder={t.item.title} big />
           </View>
         </Row>
+
+        {type !== 'note' ? (
+          <Row style={styles.focusRow}>
+            <Button
+              small
+              icon="play"
+              label={t.focus.startOnItem}
+              onPress={() =>
+                void flush()
+                  .then(() => startFocus(db, { mode: 'pomodoro', plannedMinutes: settings?.pomodoroMinutes ?? 25, itemId: id }))
+                  .then(() => router.navigate('/focus'))
+              }
+            />
+            {focusMinutes >= 1 ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t.focus.worked}: {fmtMinutes(focusMinutes)}
+              </ThemedText>
+            ) : null}
+          </Row>
+        ) : null}
 
         {type === 'event' ? (
           <>
@@ -498,6 +522,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   titleRow: { flexWrap: 'nowrap' },
+  focusRow: { justifyContent: 'space-between' },
   checkRow: { flexWrap: 'nowrap' },
   meta: { textAlign: 'center' },
 });

@@ -10,6 +10,13 @@ export interface Settings {
   defaultAlerts: number[];
   /** First visible hour in day/week views. */
   dayStartHour: number;
+  /** Daily deep-work goal in minutes. */
+  focusGoalMinutes: number;
+  /** Default Pomodoro length and break length (minutes). */
+  pomodoroMinutes: number;
+  breakMinutes: number;
+  /** End of the current break (epoch ms) or null. */
+  breakUntil: number | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -17,6 +24,10 @@ export const DEFAULT_SETTINGS: Settings = {
   writeCalendarId: null,
   defaultAlerts: [15],
   dayStartHour: 7,
+  focusGoalMinutes: 180,
+  pomodoroMinutes: 25,
+  breakMinutes: 5,
+  breakUntil: null,
 };
 
 export async function getSettings(db: Db): Promise<Settings> {

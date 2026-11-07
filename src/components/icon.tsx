@@ -24,6 +24,10 @@ const ICONS = {
   trash: { ios: 'trash', md: 'delete' },
   book: { ios: 'book', md: 'menu_book' },
   phone: { ios: 'iphone', md: 'smartphone' },
+  play: { ios: 'play.fill', md: 'play_arrow' },
+  pause: { ios: 'pause.fill', md: 'pause' },
+  stop: { ios: 'stop.fill', md: 'stop' },
+  timer: { ios: 'timer', md: 'timer' },
 } as const satisfies Record<string, { ios: SFSymbol; md: AndroidSymbol }>;
 
 export type IconName = keyof typeof ICONS;

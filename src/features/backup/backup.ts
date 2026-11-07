@@ -15,6 +15,7 @@ const TABLES = [
   'alerts',
   'habits',
   'habit_logs',
+  'focus_sessions',
   'settings',
 ] as const;
 
