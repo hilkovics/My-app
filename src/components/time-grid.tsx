@@ -22,6 +22,7 @@ export function TimeGrid({
   startHour = 7,
   onSlotPress,
   onOccurrencePress,
+  onOccurrenceLongPress,
   highlightSlots,
 }: {
   days: number[];
@@ -29,6 +30,7 @@ export function TimeGrid({
   startHour?: number;
   onSlotPress?: (time: number) => void;
   onOccurrencePress: (occ: Occurrence) => void;
+  onOccurrenceLongPress?: (occ: Occurrence) => void;
   highlightSlots?: boolean;
 }) {
   const theme = useTheme();
@@ -72,8 +74,10 @@ export function TimeGrid({
                 <Pressable
                   key={o.key}
                   onPress={() => onOccurrencePress(o)}
+                  onLongPress={onOccurrenceLongPress ? () => onOccurrenceLongPress(o) : undefined}
                   style={[styles.allDayChip, { backgroundColor: o.color ?? theme.accent }]}>
                   <ThemedText type="small" numberOfLines={1} style={styles.eventText}>
+                    {o.hasNote ? '📝 ' : ''}
                     {o.title}
                   </ThemedText>
                 </Pressable>
@@ -123,6 +127,7 @@ export function TimeGrid({
                     <Pressable
                       key={occ.key}
                       onPress={() => onOccurrencePress(occ)}
+                      onLongPress={onOccurrenceLongPress ? () => onOccurrenceLongPress(occ) : undefined}
                       style={[
                         styles.event,
                         {
@@ -141,6 +146,7 @@ export function TimeGrid({
                         numberOfLines={height > 40 ? 2 : 1}
                         style={[styles.eventText, isTask && { color: theme.text }]}>
                         {isTask ? '☐ ' : ''}
+                        {occ.hasNote ? '📝 ' : ''}
                         {occ.title}
                       </ThemedText>
                       {height > 40 && occ.kind !== 'due' ? (

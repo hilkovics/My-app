@@ -98,6 +98,18 @@ export const MIGRATIONS: string[] = [
     value TEXT NOT NULL
   );
   `,
+  // v2: notes attached to a concrete occurrence of a local or phone-calendar event
+  `
+  CREATE TABLE event_notes (
+    note_id TEXT PRIMARY KEY NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    source TEXT NOT NULL CHECK (source IN ('local', 'device')),
+    event_id TEXT NOT NULL,
+    occurrence_start INTEGER NOT NULL,
+    event_title TEXT NOT NULL DEFAULT ''
+  );
+  CREATE UNIQUE INDEX idx_event_notes_occ ON event_notes(source, event_id, occurrence_start);
+  CREATE INDEX idx_event_notes_event ON event_notes(source, event_id);
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

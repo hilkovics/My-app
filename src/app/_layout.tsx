@@ -49,6 +49,7 @@ export default function RootLayout() {
           <Stack.Screen name="item/new" options={{ title: 'Nový záznam', presentation: 'modal' }} />
           <Stack.Screen name="item/[id]" options={{ title: '' }} />
           <Stack.Screen name="item/link" options={{ title: 'Prepojiť', presentation: 'modal' }} />
+          <Stack.Screen name="event/notes" options={{ title: 'Poznámky' }} />
           <Stack.Screen name="external/[id]" options={{ title: 'Udalosť z telefónu' }} />
           <Stack.Screen name="habit/[id]" options={{ title: 'Návyk' }} />
           <Stack.Screen name="search" options={{ title: 'Hľadať' }} />

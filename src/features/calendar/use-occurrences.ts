@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useLiveQuery } from '@/db/hooks';
+import { eventRefFromOccurrence, listNotedOccurrenceKeys, occurrenceNoteKey } from '@/features/items/event-notes';
 import { listTimedItems } from '@/features/items/repository';
 import { getSettings } from '@/features/settings/repository';
 
@@ -12,6 +13,7 @@ import { fetchDeviceOccurrences } from './device';
 export function useOccurrences(from: number, to: number): Occurrence[] {
   const local = useLiveQuery(async (db) => expandItems(await listTimedItems(db, from, to), from, to), [from, to]);
   const settings = useLiveQuery((db) => getSettings(db), []);
+  const noted = useLiveQuery((db) => listNotedOccurrenceKeys(db, from, to), [from, to]);
   const [external, setExternal] = useState<Occurrence[]>([]);
   const [tick, setTick] = useState(0);
   const ids = settings?.deviceCalendarIds.join(',') ?? '';
@@ -34,5 +36,11 @@ export function useOccurrences(from: number, to: number): Occurrence[] {
     };
   }, [ids, from, to, tick]);
 
-  return sortOccurrences([...(local ?? []), ...external]);
+  return sortOccurrences(
+    [...(local ?? []), ...external].map((o) => {
+      const ref = eventRefFromOccurrence(o);
+      const hasNote = !!ref && !!noted?.has(occurrenceNoteKey(ref.source, ref.eventId, ref.occurrenceStart));
+      return hasNote ? { ...o, hasNote } : o;
+    }),
+  );
 }

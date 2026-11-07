@@ -100,6 +100,17 @@ export const t = {
     createAndEdit: 'Vytvoriť a upraviť',
     hint: 'Rozpoznám: dnes/zajtra/v piatok/12.11., 15:00 alebo o 9, 15:00-16:30, na 30 min, každý pondelok, !1–!3, #štítok, pripomeň 15 min vopred',
   },
+  eventNotes: {
+    screenTitle: 'Poznámky',
+    editEvent: 'Upraviť udalosť',
+    otherNotes: 'Poznámky z ďalších termínov',
+    seriesNotes: 'Poznámky k udalosti',
+    placeholder: 'Píš poznámky k tomuto termínu…',
+    hint: 'Poznámka sa uloží, keď začneš písať.',
+    autosave: 'Ukladá sa automaticky.',
+    more: 'Checklist, štítky…',
+    belongsTo: 'Patrí k udalosti',
+  },
   search: { placeholder: 'Hľadať vo všetkom…', empty: 'Nič sa nenašlo.' },
   settings: {
     notifications: 'Upozornenia',

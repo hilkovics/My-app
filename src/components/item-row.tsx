@@ -6,6 +6,7 @@ import type { Item } from '@/db/types';
 import { useDb } from '@/db/hooks';
 import { toggleTaskDone } from '@/features/items/repository';
 import type { Occurrence } from '@/features/calendar/agenda';
+import { editOccurrence, openOccurrence } from '@/features/calendar/open';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
@@ -38,6 +39,7 @@ export function ItemRow({
     isTask && !done && item.dueAt != null && (isDateOnly(item) ? item.dueAt < startOfDay(now) : item.dueAt < now);
   const meta: string[] = [];
   if (when != null && item.type !== 'note') meta.push(fmtDateTime(when, item.allDay || isDateOnly(item), now));
+  if (item.type === 'note' && item.eventStart != null) meta.push(`📅 ${fmtDateTime(item.eventStart, false, now)}`);
   if (item.type === 'note' && item.body) meta.push(item.body.replace(/\s+/g, ' ').slice(0, 90));
   if (progress?.total) meta.push(`☑ ${progress.done}/${progress.total}`);
 
@@ -85,6 +87,7 @@ function isDateOnly(item: Item): boolean {
 
 /** Row for a calendar occurrence (local or from the phone calendar). */
 export function OccurrenceRow({ occ, onPress }: { occ: Occurrence; onPress?: () => void }) {
+  // Tap opens the event's notes, long press edits the event.
   const theme = useTheme();
   const time = occ.allDay ? t.common.allDay : occ.kind === 'due' ? fmtTime(occ.start) : `${fmtTime(occ.start)}–${fmtTime(occ.end)}`;
   const kindLabel =
@@ -92,6 +95,7 @@ export function OccurrenceRow({ occ, onPress }: { occ: Occurrence; onPress?: () 
   return (
     <Pressable
       onPress={onPress ?? (() => openOccurrence(occ))}
+      onLongPress={() => editOccurrence(occ)}
       style={({ pressed }) => [styles.occ, pressed && { opacity: 0.6 }]}>
       <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
         {time}
@@ -109,30 +113,10 @@ export function OccurrenceRow({ occ, onPress }: { occ: Occurrence; onPress?: () 
           </ThemedText>
         ) : null}
       </View>
+      {occ.hasNote ? <Icon name="note" size={14} color={theme.accent} /> : null}
       {occ.recurring ? <Icon name="repeat" size={14} color={theme.textSecondary} /> : null}
     </Pressable>
   );
-}
-
-export function openOccurrence(occ: Occurrence) {
-  if (occ.kind === 'external') {
-    router.push({
-      pathname: '/external/[id]',
-      params: {
-        id: occ.id,
-        title: occ.title,
-        start: String(occ.start),
-        end: String(occ.end),
-        allDay: occ.allDay ? '1' : '0',
-        calendarId: occ.calendarId ?? '',
-        calendarTitle: occ.calendarTitle ?? '',
-        location: occ.location ?? '',
-        notes: occ.notes ?? '',
-      },
-    });
-  } else {
-    router.push({ pathname: '/item/[id]', params: { id: occ.id } });
-  }
 }
 
 const styles = StyleSheet.create({

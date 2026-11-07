@@ -37,6 +37,8 @@ export interface Item {
   createdAt: number;
   updatedAt: number;
   tags: string[];
+  /** For notes attached to an event occurrence: that occurrence's start. */
+  eventStart?: number | null;
 }
 
 export type ItemInput = Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>> & { type: ItemType };

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { OccurrenceRow, openOccurrence } from '@/components/item-row';
+import { OccurrenceRow } from '@/components/item-row';
 import { MonthGrid } from '@/components/month-grid';
 import { ThemedText } from '@/components/themed-text';
 import { TimeGrid } from '@/components/time-grid';
@@ -10,6 +10,7 @@ import { Button, Card, Chip, Empty, Fab, IconButton, Row, Screen, Segmented } fr
 import { Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import { occurrencesOnDay, type Occurrence } from '@/features/calendar/agenda';
+import { editOccurrence, openOccurrence } from '@/features/calendar/open';
 import { useOccurrences } from '@/features/calendar/use-occurrences';
 import { listUnscheduledTasks, scheduleTask } from '@/features/items/repository';
 import { getSettings } from '@/features/settings/repository';
@@ -186,6 +187,7 @@ export default function CalendarScreen() {
             startHour={settings?.dayStartHour ?? 7}
             highlightSlots={!!blockingTask}
             onSlotPress={(time) => void onSlot(time)}
+            onOccurrenceLongPress={editOccurrence}
             onOccurrencePress={(o: Occurrence) => {
               if (mode === 'week' && !blockingTask) setSelected(startOfDay(o.start));
               openOccurrence(o);

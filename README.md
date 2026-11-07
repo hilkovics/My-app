@@ -15,10 +15,18 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 | Záložka | Čo robí |
 | --- | --- |
 | **Dnes** | Program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, dnešné návyky, pripnuté poznámky, denník |
-| **Kalendár** | Mesiac, týždeň a deň. **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
+| **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
 | **Úlohy** | Inbox, Dnes, Naplánované, Hotové. Rýchle pridávanie po slovensky. Opakované úlohy sa po splnení posunú na ďalší termín |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
 | **Návyky** | Denné odškrtávanie (aj viackrát za deň), vybrané dni v týždni, séria 🔥, úspešnosť za 30 dní, mesačná história |
+
+### Poznámky k udalostiam
+
+Ťukni na udalosť (napr. prednášku) v kalendári alebo na obrazovke Dnes a otvoria sa poznámky k tomuto termínu.
+Funguje to pre vlastné udalosti aj pre udalosti z kalendára v telefóne. Pri opakovanej udalosti má každý termín
+vlastnú poznámku (napr. „Prednáška Matematika – 9. 11.“) a pod ňou je zoznam poznámok z ostatných termínov.
+Poznámka sa vytvorí až keď začneš písať, dostane štítok podľa názvu udalosti a termín s poznámkou má v kalendári 📝.
+Podržaním prsta na udalosti sa otvorí jej úprava.
 
 Ďalej: fulltextové hľadanie vo všetkom, prepojenia medzi záznamami, poznámky a úlohy k udalostiam z telefónu,
 kopírovanie udalosti do kalendára v telefóne, lokálne notifikácie s tlačidlami **Odložiť 10 min** a **Hotovo**,

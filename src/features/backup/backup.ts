@@ -6,6 +6,7 @@ import { parseRule, toIcsRule } from '../../lib/recurrence';
 
 const TABLES = [
   'items',
+  'event_notes',
   'tags',
   'item_tags',
   'item_links',

@@ -28,6 +28,7 @@ import {
   unlinkItems,
   updateItem,
 } from '@/features/items/repository';
+import { getEventLinkForNote, listSeriesNotes } from '@/features/items/event-notes';
 import { ALERT_PRESETS, describeOffset } from '@/features/notifications/plan';
 import { hasPermission, requestPermission, supported as notificationsSupported } from '@/features/notifications/scheduler';
 import { getSettings } from '@/features/settings/repository';
@@ -76,6 +77,8 @@ export default function ItemScreen() {
   const linked = useLiveQuery((d) => listLinkedItems(d, id), [id]) ?? [];
   const alerts = useLiveQuery((d) => listAlerts(d, id), [id]) ?? [];
   const external = useLiveQuery((d) => getExternalLink(d, id), [id]);
+  const eventLink = useLiveQuery((d) => getEventLinkForNote(d, id), [id]);
+  const eventNotes = useLiveQuery((d) => listSeriesNotes(d, 'local', id), [id]) ?? [];
   const settings = useLiveQuery((d) => getSettings(d), []);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [newEntry, setNewEntry] = useState('');
@@ -210,6 +213,17 @@ export default function ItemScreen() {
             { value: 'note', label: t.types.note },
           ]}
         />
+
+        {type === 'note' && eventLink ? (
+          <Button
+            small
+            variant="secondary"
+            icon="calendar"
+            label={`${t.eventNotes.belongsTo}: ${eventLink.eventTitle || t.common.untitled} · ${fmtDateTime(eventLink.occurrenceStart)}`}
+            disabled={eventLink.source !== 'local'}
+            onPress={() => router.push({ pathname: '/item/[id]', params: { id: eventLink.eventId } })}
+          />
+        ) : null}
 
         <Row style={styles.titleRow}>
           {type === 'task' ? (
@@ -401,6 +415,16 @@ export default function ItemScreen() {
             <Chip label={`📌 ${t.item.pinned}`} selected={draft.pinned} onPress={() => patch({ pinned: !draft.pinned })} />
           </Row>
         </Field>
+
+        {type === 'event' && eventNotes.length ? (
+          <Section title={t.eventNotes.seriesNotes}>
+            <View>
+              {eventNotes.map((n) => (
+                <ItemRow key={n.id} item={n} />
+              ))}
+            </View>
+          </Section>
+        ) : null}
 
         <Section title={t.item.checklist}>
           {checklist.map((c) => (

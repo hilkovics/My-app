@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Empty, Section } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
+import { listSeriesNotes } from '@/features/items/event-notes';
 import { createItem, linkExternal, listItemsForExternal } from '@/features/items/repository';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
@@ -26,21 +27,22 @@ export default function ExternalEventScreen() {
   }>();
   const db = useDb();
   const theme = useTheme();
-  const notes = useLiveQuery((d) => listItemsForExternal(d, p.id), [p.id]) ?? [];
+  const notes =
+    useLiveQuery(async (d) => {
+      const [series, linked] = await Promise.all([listSeriesNotes(d, 'device', p.id), listItemsForExternal(d, p.id)]);
+      const seen = new Set(series.map((n) => n.id));
+      return [...series, ...linked.filter((n) => !seen.has(n.id))];
+    }, [p.id]) ?? [];
   const start = Number(p.start);
   const end = Number(p.end);
   const allDay = p.allDay === '1';
 
-  const addNote = async () => {
-    const note = await createItem(db, {
-      type: 'note',
-      title: `Poznámky: ${p.title}`,
-      body: '',
-      tags: ['stretnutie'],
+  // Notes for this occurrence open the same screen as tapping the event in the calendar.
+  const openNotes = () =>
+    router.push({
+      pathname: '/event/notes',
+      params: { ...p, source: 'device', eventId: p.id },
     });
-    await linkExternal(db, note.id, p.calendarId || null, p.id);
-    router.push({ pathname: '/item/[id]', params: { id: note.id } });
-  };
 
   const addTask = async () => {
     const task = await createItem(db, { type: 'task', title: `${p.title}: `, dueAt: start });
@@ -69,7 +71,7 @@ export default function ExternalEventScreen() {
       <Section title="Moje poznámky a úlohy">
         {notes.length ? notes.map((n) => <ItemRow key={n.id} item={n} />) : <Empty text="Zatiaľ nič." />}
       </Section>
-      <Button icon="note" label="Pridať poznámku k udalosti" onPress={() => void addNote()} />
+      <Button icon="note" label="Poznámky k tomuto termínu" onPress={openNotes} />
       <Button variant="secondary" icon="task" label="Pridať úlohu k udalosti" onPress={() => void addTask()} />
     </ScrollView>
   );

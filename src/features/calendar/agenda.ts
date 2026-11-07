@@ -21,6 +21,8 @@ export interface Occurrence {
   calendarTitle?: string;
   location?: string | null;
   notes?: string | null;
+  /** A note is attached to this occurrence (see event-notes). */
+  hasNote?: boolean;
 }
 
 /** Expands events, time-blocked tasks and due tasks (incl. recurring) into occurrences in [from, to). */

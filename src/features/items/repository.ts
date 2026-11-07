@@ -23,13 +23,15 @@ interface ItemRow {
   created_at: number;
   updated_at: number;
   tags: string | null;
+  event_start: number | null;
 }
 
 const SELECT_ITEMS = `
   SELECT i.*, (
     SELECT group_concat(t.name, char(31)) FROM item_tags it JOIN tags t ON t.id = it.tag_id
     WHERE it.item_id = i.id
-  ) AS tags
+  ) AS tags,
+  (SELECT en.occurrence_start FROM event_notes en WHERE en.note_id = i.id) AS event_start
   FROM items i`;
 
 function toItem(r: ItemRow): Item {
@@ -52,6 +54,7 @@ function toItem(r: ItemRow): Item {
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     tags: r.tags ? r.tags.split('\u001f').sort((a, b) => a.localeCompare(b, 'sk')) : [],
+    eventStart: r.event_start,
   };
 }
 
@@ -89,6 +92,14 @@ async function query(db: Db, where: string, params: SqlParam[] = [], tail = ''):
 export async function getItem(db: Db, id: string): Promise<Item | null> {
   const [item] = await query(db, 'i.id = ?', [id]);
   return item ?? null;
+}
+
+/** Items by id, in the given order (missing ids are skipped). */
+export async function listByIds(db: Db, ids: string[]): Promise<Item[]> {
+  if (!ids.length) return [];
+  const items = await query(db, `i.id IN (${ids.map(() => '?').join(', ')})`, ids);
+  const byId = new Map(items.map((i) => [i.id, i]));
+  return ids.map((id) => byId.get(id)).filter((i): i is Item => !!i);
 }
 
 export async function createItem(db: Db, input: ItemInput, now = Date.now()): Promise<Item> {
