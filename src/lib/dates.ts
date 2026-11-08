@@ -152,3 +152,9 @@ export function parseTime(s: string): number | null {
   if (h > 23 || min > 59) return null;
   return h * 60 + min;
 }
+
+/** Slovak plural: plural(1, 'deň', 'dni', 'dní') → "1 deň", 3 → "3 dni", 5 → "5 dní". */
+export function plural(n: number, one: string, few: string, many: string): string {
+  const word = n === 1 ? one : n >= 2 && n <= 4 ? few : many;
+  return `${n} ${word}`;
+}

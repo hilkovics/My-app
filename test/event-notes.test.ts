@@ -128,7 +128,7 @@ describe('migration v1 → v2', () => {
   it('upgrades an existing v1 database without losing data', async () => {
     const db = createNodeDb();
     await db.execAsync('PRAGMA foreign_keys = ON;');
-    await db.execAsync(MIGRATIONS[0]);
+    await db.execAsync(MIGRATIONS[0] as string);
     await db.execAsync('PRAGMA user_version = 1');
     await db.runAsync(
       "INSERT INTO items (id, type, title, created_at, updated_at) VALUES ('old', 'note', 'stará poznámka', 1, 1)",

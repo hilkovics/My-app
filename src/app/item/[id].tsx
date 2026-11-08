@@ -256,7 +256,7 @@ export default function ItemScreen() {
               onPress={() =>
                 void flush()
                   .then(() => startFocus(db, { mode: 'pomodoro', plannedMinutes: settings?.pomodoroMinutes ?? 25, itemId: id }))
-                  .then(() => router.navigate('/focus'))
+                  .then(() => router.navigate({ pathname: '/progress', params: { section: 'focus' } }))
               }
             />
             {focusMinutes >= 1 ? (

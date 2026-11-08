@@ -56,7 +56,9 @@ export default function RootLayout() {
           <Stack.Screen name="item/link" options={{ title: 'Prepojiť', presentation: 'modal' }} />
           <Stack.Screen name="event/notes" options={{ title: 'Poznámky' }} />
           <Stack.Screen name="external/[id]" options={{ title: 'Udalosť z telefónu' }} />
-          <Stack.Screen name="habit/[id]" options={{ title: 'Návyk' }} />
+          <Stack.Screen name="activity/[id]" options={{ title: 'Aktivita' }} />
+          <Stack.Screen name="activity/edit" options={{ title: 'Aktivita' }} />
+          <Stack.Screen name="activity/log" options={{ title: 'Záznam', presentation: 'modal' }} />
           <Stack.Screen name="focus/pick" options={{ title: 'Na čom pracuješ', presentation: 'modal' }} />
           <Stack.Screen name="search" options={{ title: 'Hľadať' }} />
           <Stack.Screen name="settings" options={{ title: 'Nastavenia' }} />

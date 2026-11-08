@@ -18,7 +18,19 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 | **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
 | **Úlohy** | Inbox, Dnes, Naplánované, Hotové. Rýchle pridávanie po slovensky. Opakované úlohy sa po splnení posunú na ďalší termín |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
-| **Fokus** | Meranie sústredenej práce (stopky alebo Pomodoro 25/50/90 min s prestávkou), priradenie k úlohe/udalosti a štítku, štatistiky a **návyky** (denné odškrtávanie, séria 🔥, úspešnosť za 30 dní) |
+| **Pokrok** | **Aktivity** (hra na nástroji, beh, mixovanie hudby… aj návyky na odškrtávanie) s ročnou mapou dní a týždenným mixom, **Fokus** (časovač sústredenej práce) a jeho **Štatistiky** |
+
+### Aktivity
+
+- Aktivitu vytvoríš zo šablóny (🎸 Hudobný nástroj, 🏃 Beh, 🎧 Mixovanie hudby, ✓ Návyk) alebo vlastnú.
+  Meraná aktivita sleduje čas a voliteľne **km** (tempo min/km) a **hodnotenie ★**. Návyk je aktivita
+  na odškrtávanie s denným cieľom a vybranými dňami (pôvodné návyky sa preniesli automaticky).
+- Záznam: **▶ Štart** (časovač s pauzou, po Stop doplníš km, hodnotenie a poznámku) alebo **Pridať ručne**.
+- **Týždenný cieľ** (počet ×, minúty alebo km) so **sériou týždňov 🔥**.
+- **Ročná mapa dní** (štvorček za každý deň, tmavší = viac aktivít), **týždenný mix** za 12 týždňov
+  (stĺpce rozdelené podľa aktivít, s legendou a súčtami) a pri každej aktivite vlastná mapa, graf po
+  týždňoch a **denník** záznamov.
+- Na obrazovke Dnes: odškrtávanie návykov, rýchle ▶ pre aktivity a bežiaci časovač.
 
 ### Fokus (sústredená práca)
 
@@ -92,7 +104,7 @@ src/
     items/repository.ts     # CRUD, konverzia typov, úlohy, tagy, prepojenia, checklist, upozornenia
     calendar/               # rozvinutie opakovaní, rozloženie dňa, kalendár telefónu
     notifications/          # výpočet časov upozornení + plánovanie cez expo-notifications
-    habits/                 # repozitár a štatistiky (séria, úspešnosť)
+    activities/             # aktivity a záznamy, štatistiky (mapa dní, mix, ciele, série), prevod starých návykov
     focus/                  # sedenia, ovládač časovača (notifikácie), štatistiky
     quickadd/parse.ts       # slovenský parser rýchleho pridávania
     backup/                 # JSON záloha, .ics export

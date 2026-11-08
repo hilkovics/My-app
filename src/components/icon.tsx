@@ -28,6 +28,7 @@ const ICONS = {
   pause: { ios: 'pause.fill', md: 'pause' },
   stop: { ios: 'stop.fill', md: 'stop' },
   timer: { ios: 'timer', md: 'timer' },
+  chart: { ios: 'chart.bar.fill', md: 'bar_chart' },
 } as const satisfies Record<string, { ios: SFSymbol; md: AndroidSymbol }>;
 
 export type IconName = keyof typeof ICONS;

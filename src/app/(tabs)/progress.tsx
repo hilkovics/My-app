@@ -3,31 +3,31 @@ import { useState } from 'react';
 
 import { StatsPanel } from '@/components/focus/stats-panel';
 import { TimerPanel } from '@/components/focus/timer-panel';
-import { HabitsList } from '@/components/habits-list';
+import { ActivitiesPanel } from '@/components/activities/activities-panel';
 import { IconButton, Screen, Segmented } from '@/components/ui';
 import { t } from '@/i18n/sk';
 
-type Section = 'timer' | 'stats' | 'habits';
+type Section = 'activities' | 'focus' | 'stats';
 
-/** Focus tab: deep-work timer, its statistics, and habits (all about tracking progress). */
-export default function FocusScreen() {
+/** Progress tab: activities (incl. former habits), the deep-work timer and its statistics. */
+export default function ProgressScreen() {
   const params = useLocalSearchParams<{ section?: Section }>();
-  const [section, setSection] = useState<Section>(params.section ?? 'timer');
+  const [section, setSection] = useState<Section>(params.section ?? 'activities');
 
   return (
     <Screen
-      title={t.tabs.focus}
+      title={t.tabs.progress}
       actions={<IconButton name="settings" label={t.common.settings} onPress={() => router.push('/settings')} />}>
       <Segmented<Section>
         value={section}
         onChange={setSection}
         options={[
-          { value: 'timer', label: t.focus.timer },
+          { value: 'activities', label: t.activities.section },
+          { value: 'focus', label: t.tabs.focus },
           { value: 'stats', label: t.focus.stats },
-          { value: 'habits', label: t.tabs.habits },
         ]}
       />
-      {section === 'timer' ? <TimerPanel /> : section === 'stats' ? <StatsPanel /> : <HabitsList />}
+      {section === 'activities' ? <ActivitiesPanel /> : section === 'focus' ? <TimerPanel /> : <StatsPanel />}
     </Screen>
   );
 }

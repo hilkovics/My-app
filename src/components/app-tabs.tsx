@@ -11,7 +11,7 @@ export const TABS = [
   { name: 'calendar', label: t.tabs.calendar, icon: TAB_ICONS.calendar },
   { name: 'tasks', label: t.tabs.tasks, icon: TAB_ICONS.task },
   { name: 'notes', label: t.tabs.notes, icon: TAB_ICONS.note },
-  { name: 'focus', label: t.tabs.focus, icon: TAB_ICONS.timer },
+  { name: 'progress', label: t.tabs.progress, icon: TAB_ICONS.chart },
 ] as const;
 
 export default function AppTabs() {

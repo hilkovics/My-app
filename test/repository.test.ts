@@ -3,8 +3,6 @@ import { describe, it } from 'node:test';
 
 import { exportBackup, importBackup, toIcs } from '../src/features/backup/backup';
 import { expandItems, layoutDay } from '../src/features/calendar/agenda';
-import { computeStreak } from '../src/features/habits/stats';
-import { createHabit, getHabitLogs, logHabit } from '../src/features/habits/repository';
 import {
   addChecklistEntry,
   convertItem,
@@ -29,7 +27,6 @@ import {
 } from '../src/features/items/repository';
 import { planAlerts } from '../src/features/notifications/plan';
 import { getSettings, setSetting } from '../src/features/settings/repository';
-import { ymd } from '../src/lib/dates';
 import { createMigratedDb } from './helpers/node-db';
 
 const at = (y: number, m: number, d: number, h = 0, mi = 0) => new Date(y, m - 1, d, h, mi).getTime();
@@ -153,35 +150,6 @@ describe('items repository', () => {
     const weekly = await updateItem(db, e.id, { rrule: 'FREQ=WEEKLY' });
     const p2 = planAlerts(weekly, [1440], NOW);
     assert.equal(p2[0].occurrence, at(2026, 11, 14, 14));
-  });
-});
-
-describe('habits', () => {
-  it('logs and computes streaks', async () => {
-    const db = await createMigratedDb();
-    const h = await createHabit(db, { name: 'Voda', targetPerDay: 2 }, at(2026, 10, 1));
-    for (const d of [4, 5, 6]) {
-      await logHabit(db, h.id, ymd(at(2026, 11, d)), 2);
-    }
-    await logHabit(db, h.id, ymd(at(2026, 11, 3)), 1);
-    const logs = (await getHabitLogs(db, '2026-10-01', '2026-11-30')).get(h.id);
-    // Today (7th) not done yet: streak counts 4–6.
-    assert.equal(computeStreak(h, logs, NOW), 3);
-    await logHabit(db, h.id, ymd(NOW), 1);
-    await logHabit(db, h.id, ymd(NOW), 1);
-    await logHabit(db, h.id, ymd(NOW), -5);
-    const logs2 = (await getHabitLogs(db, '2026-10-01', '2026-11-30')).get(h.id);
-    assert.equal(logs2?.get('2026-11-07'), undefined);
-  });
-
-  it('skips unscheduled days in the streak', () => {
-    // Weekdays only; Sat 7 Nov, Fri 6 and Thu 5 done.
-    const h = { days: '1111100', targetPerDay: 1, createdAt: at(2026, 10, 1) };
-    const logs = new Map([
-      ['2026-11-05', 1],
-      ['2026-11-06', 1],
-    ]);
-    assert.equal(computeStreak(h, logs, NOW), 2);
   });
 });
 

@@ -1,10 +1,14 @@
+import { habitsToActivities, insertRows, type LegacyHabit, type LegacyHabitLog } from '../features/activities/legacy';
+
 import type { Db } from './types';
+
+type Migration = string | ((db: Db) => Promise<void>);
 
 /**
  * Ordered migrations. Never edit a shipped migration; append a new one instead.
  * Each runs in a transaction together with the user_version bump.
  */
-export const MIGRATIONS: string[] = [
+export const MIGRATIONS: Migration[] = [
   // v1
   `
   CREATE TABLE items (
@@ -128,6 +132,51 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX idx_focus_item ON focus_sessions(item_id);
   CREATE UNIQUE INDEX idx_focus_running ON focus_sessions((1)) WHERE ended_at IS NULL;
   `,
+  // v4: activities (instrument practice, running, …) replace habits; habits become 'check' activities
+  async (db) => {
+    await db.execAsync(`
+      CREATE TABLE activities (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '⭐',
+        color_slot INTEGER NOT NULL DEFAULT 0,
+        kind TEXT NOT NULL CHECK (kind IN ('timed', 'check')),
+        track_distance INTEGER NOT NULL DEFAULT 0,
+        track_rating INTEGER NOT NULL DEFAULT 0,
+        days TEXT NOT NULL DEFAULT '1111111',
+        target_per_day INTEGER NOT NULL DEFAULT 1,
+        goal_type TEXT CHECK (goal_type IN ('sessions', 'minutes', 'km')),
+        goal_value REAL,
+        archived INTEGER NOT NULL DEFAULT 0,
+        position INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE activity_logs (
+        id TEXT PRIMARY KEY NOT NULL,
+        activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+        day TEXT NOT NULL,
+        started_at INTEGER NOT NULL,
+        ended_at INTEGER,
+        paused_at INTEGER,
+        paused_ms INTEGER NOT NULL DEFAULT 0,
+        duration_ms INTEGER,
+        distance_m REAL,
+        count INTEGER NOT NULL DEFAULT 0,
+        rating INTEGER,
+        note TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX idx_alog_activity_day ON activity_logs(activity_id, day);
+      CREATE INDEX idx_alog_day ON activity_logs(day);
+      CREATE UNIQUE INDEX idx_alog_running ON activity_logs((1)) WHERE ended_at IS NULL;
+    `);
+    const habits = await db.getAllAsync<LegacyHabit>('SELECT * FROM habits ORDER BY created_at');
+    const logs = await db.getAllAsync<LegacyHabitLog>('SELECT * FROM habit_logs');
+    const converted = habitsToActivities(habits, logs);
+    await insertRows(db, 'activities', converted.activities);
+    await insertRows(db, 'activity_logs', converted.logs);
+    await db.execAsync('DROP TABLE habit_logs; DROP TABLE habits;');
+  },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
@@ -142,7 +191,9 @@ export async function migrate(db: Db): Promise<void> {
   if (current === SCHEMA_VERSION) return;
   await db.withTransactionAsync(async () => {
     for (let v = current; v < SCHEMA_VERSION; v++) {
-      await db.execAsync(MIGRATIONS[v]);
+      const m = MIGRATIONS[v];
+      if (typeof m === 'string') await db.execAsync(m);
+      else await m(db);
     }
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   });

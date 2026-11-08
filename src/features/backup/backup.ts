@@ -3,6 +3,7 @@ import { notifyChange } from '../../db/changes';
 import { SCHEMA_VERSION } from '../../db/schema';
 import type { Db, Item, SqlParam } from '../../db/types';
 import { parseRule, toIcsRule } from '../../lib/recurrence';
+import { habitsToActivities, insertRows, type LegacyHabit, type LegacyHabitLog } from '../activities/legacy';
 
 const TABLES = [
   'items',
@@ -13,8 +14,8 @@ const TABLES = [
   'external_links',
   'checklist_entries',
   'alerts',
-  'habits',
-  'habit_logs',
+  'activities',
+  'activity_logs',
   'focus_sessions',
   'settings',
 ] as const;
@@ -39,18 +40,19 @@ export async function importBackup(db: Db, data: unknown): Promise<void> {
   const b = data as Backup;
   if (!b || b.app !== 'planovac' || typeof b.tables !== 'object') throw new Error('Súbor nie je záloha Plánovača.');
   if (b.schemaVersion > SCHEMA_VERSION) throw new Error('Záloha je z novšej verzie aplikácie.');
+  const tables = { ...b.tables };
+  // Backups from before activities (schema < 4) carry habits: convert them.
+  if (tables.habits && !tables.activities) {
+    const converted = habitsToActivities(
+      tables.habits as unknown as LegacyHabit[],
+      (tables.habit_logs ?? []) as unknown as LegacyHabitLog[],
+    );
+    tables.activities = converted.activities;
+    tables.activity_logs = converted.logs;
+  }
   await db.withTransactionAsync(async () => {
     for (const t of [...TABLES].reverse()) await db.runAsync(`DELETE FROM ${t}`);
-    for (const t of TABLES) {
-      for (const row of b.tables[t] ?? []) {
-        const cols = Object.keys(row).filter((c) => /^[a-z_]+$/.test(c));
-        if (!cols.length) continue;
-        await db.runAsync(
-          `INSERT INTO ${t} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`,
-          ...cols.map((c) => row[c] ?? null),
-        );
-      }
-    }
+    for (const t of TABLES) await insertRows(db, t, tables[t] ?? []);
   });
   notifyChange();
 }

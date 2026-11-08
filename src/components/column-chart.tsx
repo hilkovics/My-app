@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   slot: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end' },
   bar: { borderTopLeftRadius: 4, borderTopRightRadius: 4 },
   goal: { position: 'absolute', left: 0, right: 0, borderTopWidth: StyleSheet.hairlineWidth, zIndex: 1 },
-  goalLabel: { position: 'absolute', right: 0, top: -10, fontSize: 11, lineHeight: 14, paddingHorizontal: 4 },
+  goalLabel: { position: 'absolute', left: 0, top: -10, fontSize: 11, lineHeight: 14, paddingHorizontal: 4 },
   labels: { height: 16 },
   label: { position: 'absolute', width: LABEL_WIDTH, textAlign: 'center', fontSize: 11, lineHeight: 14 },
 });

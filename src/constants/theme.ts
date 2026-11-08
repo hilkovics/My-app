@@ -61,3 +61,21 @@ export const Radius = { sm: 6, md: 10, lg: 16 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 72 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/**
+ * Categorical palette for activities (validated for colour-vision deficiency on adjacent pairs;
+ * order matters). Each activity keeps its slot, so its colour never changes with ranking.
+ */
+export const ACTIVITY_COLORS = {
+  light: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'],
+  dark: ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'],
+} as const;
+
+/** Colour of the folded "Ostatné" series. */
+export const OTHER_COLOR = { light: '#8a8f98', dark: '#6b7079' } as const;
+
+/** Sequential blue ramp for the year map, levels 1–4 (level 0 = backgroundElement). */
+export const HEAT_STEPS = {
+  light: ['#9ec5f4', '#5598e7', '#256abf', '#104281'],
+  dark: ['#184f95', '#256abf', '#3987e5', '#86b6ef'],
+} as const;
