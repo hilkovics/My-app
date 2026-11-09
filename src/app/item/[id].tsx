@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { DateTimeField } from '@/components/date-time-field';
 import { ItemRow } from '@/components/item-row';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Checkbox, Chip, Empty, Field, IconButton, Input, Row, Section, Segmented } from '@/components/ui';
+import { Button, Checkbox, Chip, Empty, Field, IconButton, Input, Row, Section, Segmented, Swatch } from '@/components/ui';
 import { ITEM_COLORS, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import type { Item, ItemType } from '@/db/types';
@@ -509,7 +509,7 @@ export default function ItemScreen() {
           <Row>
             <Chip label="—" selected={draft.color == null} onPress={() => patch({ color: null })} />
             {ITEM_COLORS.map((c) => (
-              <Chip key={c} label={draft.color === c ? '✓' : ' '} color={c} selected onPress={() => patch({ color: c })} />
+              <Swatch key={c} color={c} label={`Farba ${c}`} selected={draft.color === c} onPress={() => patch({ color: c })} />
             ))}
             <Chip label={`📌 ${t.item.pinned}`} selected={draft.pinned} onPress={() => patch({ pinned: !draft.pinned })} />
           </Row>

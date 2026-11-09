@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Button, Chip, Field, Input, Row, Segmented } from '@/components/ui';
+import { Button, Chip, Field, Input, Row, Segmented, Swatch } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
@@ -126,11 +126,11 @@ function Editor({ activity }: { activity: Activity | null }) {
       <Field label={t.activities.color}>
         <Row>
           {slots.map((c, i) => (
-            <Chip
+            <Swatch
               key={c}
-              label={(d.colorSlot ?? activity?.colorSlot) === i ? '✓' : ' '}
               color={c}
-              selected
+              label={`Farba ${i + 1}`}
+              selected={(d.colorSlot ?? activity?.colorSlot) === i}
               onPress={() => patch({ colorSlot: i })}
             />
           ))}

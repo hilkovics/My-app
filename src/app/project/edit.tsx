@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DateTimeField } from '@/components/date-time-field';
-import { Button, Chip, Field, Input, Row } from '@/components/ui';
+import { Button, Chip, Field, Input, Row, Swatch } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
@@ -78,7 +78,7 @@ function Editor({ project, goals }: { project: Project | null; goals: Awaited<Re
       <Field label={t.projects.color}>
         <Row>
           {slots.map((c, i) => (
-            <Chip key={c} label={(slot ?? project?.colorSlot) === i ? '✓' : ' '} color={c} selected onPress={() => setSlot(i)} />
+            <Swatch key={c} color={c} label={`Farba ${i + 1}`} selected={(slot ?? project?.colorSlot) === i} onPress={() => setSlot(i)} />
           ))}
         </Row>
       </Field>
