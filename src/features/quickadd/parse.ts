@@ -201,8 +201,8 @@ export function toItemInput(p: Parsed, type: ItemType, now = Date.now()): ItemIn
     const duration = allDay && when != null ? 24 * 60 : (p.durationMin ?? 60);
     return { ...base, startAt, endAt: startAt + duration * MINUTE - (allDay && when != null ? MINUTE : 0), allDay: allDay && when != null };
   }
-  // task
-  const input: ItemInput = { ...base, dueAt: when };
+  // task: "na 30 min" is the estimate; with a time it also blocks that time in the calendar
+  const input: ItemInput = { ...base, dueAt: when, estimateMinutes: p.durationMin };
   if (p.durationMin != null && when != null && p.minutes != null) {
     // A duration on a task means "block this time in the calendar".
     input.startAt = when;

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { TodayActivities } from '@/components/activities/today-activities';
 import { ItemRow, OccurrenceRow } from '@/components/item-row';
 import { Meter } from '@/components/meter';
+import { TodayPlanCard } from '@/components/plan/today-plan-card';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Empty, Fab, IconButton, Row, Screen, Section } from '@/components/ui';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
@@ -48,6 +49,8 @@ export default function TodayScreen() {
         </>
       }
       fab={<Fab label={t.common.add} onPress={() => router.push('/item/new')} />}>
+      <TodayPlanCard />
+
       <Section title={t.today.timeline}>
         <Card>
           {occurrences.length ? (

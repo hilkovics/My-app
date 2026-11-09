@@ -17,6 +17,11 @@ export interface Settings {
   breakMinutes: number;
   /** End of the current break (epoch ms) or null. */
   breakUntil: number | null;
+  /** Work the day can hold, in minutes (day plan capacity). */
+  dayCapacityMinutes: number;
+  /** Sleep window (hours of day): the ring greys it out and nothing is planned in it. */
+  sleepStartHour: number;
+  sleepEndHour: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +33,9 @@ export const DEFAULT_SETTINGS: Settings = {
   pomodoroMinutes: 25,
   breakMinutes: 5,
   breakUntil: null,
+  dayCapacityMinutes: 480,
+  sleepStartHour: 23,
+  sleepEndHour: 7,
 };
 
 export async function getSettings(db: Db): Promise<Settings> {

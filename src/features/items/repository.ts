@@ -1,5 +1,5 @@
 import { notifyChange } from '../../db/changes';
-import type { Alert, ChecklistEntry, Db, Item, ItemInput, ItemType, SqlParam, TaskStatus } from '../../db/types';
+import type { Alert, ChecklistEntry, Db, Energy, Item, ItemInput, ItemType, SqlParam, TaskStatus } from '../../db/types';
 import { HOUR, endOfDay, roundUpMinutes, startOfDay, ymd } from '../../lib/dates';
 import { newId } from '../../lib/id';
 import { nextOccurrence, parseRule } from '../../lib/recurrence';
@@ -23,6 +23,8 @@ interface ItemRow {
   project_id: string | null;
   status: TaskStatus | null;
   waiting_for: string | null;
+  estimate_minutes: number | null;
+  energy: Energy | null;
   created_at: number;
   updated_at: number;
   tags: string | null;
@@ -59,6 +61,8 @@ function toItem(r: ItemRow): Item {
     projectId: r.project_id,
     status: r.status,
     waitingFor: r.waiting_for,
+    estimateMinutes: r.estimate_minutes,
+    energy: r.energy,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     tags: r.tags ? r.tags.split('\u001f').sort((a, b) => a.localeCompare(b, 'sk')) : [],
@@ -85,6 +89,8 @@ const COLUMN_MAP: Record<string, string> = {
   projectId: 'project_id',
   status: 'status',
   waitingFor: 'waiting_for',
+  estimateMinutes: 'estimate_minutes',
+  energy: 'energy',
 };
 
 function toParam(v: unknown): SqlParam {
@@ -404,6 +410,22 @@ export async function listProjectItems(db: Db, projectId: string): Promise<Item[
     [projectId],
     "ORDER BY (i.completed_at IS NOT NULL), CASE i.type WHEN 'task' THEN 0 WHEN 'event' THEN 1 ELSE 2 END, COALESCE(i.due_at, i.start_at) IS NULL, COALESCE(i.due_at, i.start_at), i.created_at",
   );
+}
+
+/**
+ * Sets the estimated duration (null clears it). A task that already has a time block keeps its
+ * start; the block's end follows the estimate.
+ */
+export async function setEstimate(db: Db, id: string, minutes: number | null): Promise<Item> {
+  const item = await getItem(db, id);
+  if (!item) throw new Error('Záznam neexistuje');
+  const patch: Partial<Item> = { estimateMinutes: minutes };
+  if (minutes != null && item.type === 'task' && item.startAt != null) patch.endAt = item.startAt + minutes * 60_000;
+  return updateItem(db, id, patch);
+}
+
+export async function setEnergy(db: Db, id: string, energy: Energy | null): Promise<Item> {
+  return updateItem(db, id, { energy });
 }
 
 /** Puts a task into the calendar at `start` for `minutes`. */

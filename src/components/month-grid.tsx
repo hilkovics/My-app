@@ -13,12 +13,15 @@ export function MonthGrid({
   selected,
   onSelect,
   dots,
+  warnDays,
   compact,
 }: {
   month: number;
   selected: number | null;
   onSelect: (day: number) => void;
   dots?: Map<number, string[]>;
+  /** Days that are overloaded: shown with a red ring. */
+  warnDays?: Set<number>;
   compact?: boolean;
 }) {
   const theme = useTheme();
@@ -45,7 +48,7 @@ export function MonthGrid({
               <Pressable
                 key={day}
                 accessibilityRole="button"
-                accessibilityLabel={new Date(day).toLocaleDateString('sk-SK')}
+                accessibilityLabel={`${new Date(day).toLocaleDateString('sk-SK')}${warnDays?.has(day) ? ', preplnený deň' : ''}`}
                 onPress={() => onSelect(day)}
                 style={[styles.cell, compact && styles.cellCompact]}>
                 <View
@@ -53,6 +56,7 @@ export function MonthGrid({
                     styles.num,
                     isSel && { backgroundColor: theme.accent },
                     !isSel && isToday && { borderColor: theme.accent, borderWidth: 1.5 },
+                    !isSel && !isToday && warnDays?.has(day) && { borderColor: theme.danger, borderWidth: 1.5 },
                   ]}>
                   <ThemedText
                     type="small"

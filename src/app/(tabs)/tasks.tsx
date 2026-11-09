@@ -5,10 +5,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ItemRow } from '@/components/item-row';
 import { ThemedText } from '@/components/themed-text';
 import { KanbanBoard } from '@/components/kanban-board';
+import { useGuardedCreate } from '@/components/plan/capacity-guard';
 import { ProjectsPanel } from '@/components/projects/projects-panel';
 import { Chip, Empty, IconButton, Input, Screen, Segmented } from '@/components/ui';
-import { useDb, useLiveQuery, useNow } from '@/db/hooks';
-import { checklistProgress, createItem, listTasks, setAlerts, type TaskView } from '@/features/items/repository';
+import { useLiveQuery, useNow } from '@/db/hooks';
+import { checklistProgress, listTasks, type TaskView } from '@/features/items/repository';
 import { listProjects } from '@/features/projects/repository';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { t } from '@/i18n/sk';
@@ -16,7 +17,7 @@ import { describeRule } from '@/lib/recurrence';
 import { fmtDateTime } from '@/lib/dates';
 
 function TaskList() {
-  const db = useDb();
+  const { create, dialog } = useGuardedCreate();
   const now = useNow();
   const [view, setView] = useState<TaskView>('today');
   const [text, setText] = useState('');
@@ -38,9 +39,7 @@ function TaskList() {
 
   const add = async () => {
     if (!parsed?.title) return;
-    const item = await createItem(db, toItemInput(parsed, 'task'));
-    if (parsed.alerts.length) await setAlerts(db, item.id, parsed.alerts);
-    setText('');
+    await create(toItemInput(parsed, 'task'), { alerts: parsed.alerts, onCreated: () => setText('') });
   };
 
   return (
@@ -77,6 +76,7 @@ function TaskList() {
           <Empty text={t.tasks.empty} />
         )}
       </View>
+      {dialog}
     </>
   );
 }

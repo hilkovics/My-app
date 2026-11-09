@@ -5,11 +5,12 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ItemRow } from '@/components/item-row';
 import { KanbanBoard } from '@/components/kanban-board';
 import { Meter } from '@/components/meter';
+import { useGuardedCreate } from '@/components/plan/capacity-guard';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Chip, Empty, IconButton, Input, Row, Section, Segmented } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
-import { checklistProgress, createItem, listProjectItems, setAlerts } from '@/features/items/repository';
+import { checklistProgress, listProjectItems } from '@/features/items/repository';
 import { getGoal, getProject, updateProject } from '@/features/projects/repository';
 import { fmtCountdown, projectProgress } from '@/features/projects/stats';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
@@ -27,6 +28,7 @@ export default function ProjectScreen() {
   const now = useNow();
   const [view, setView] = useState<View_>('list');
   const [text, setText] = useState('');
+  const { create, dialog } = useGuardedCreate();
   const data = useLiveQuery(
     async (d) => {
       const project = await getProject(d, id);
@@ -55,9 +57,7 @@ export default function ProjectScreen() {
   const add = async () => {
     const parsed = parseQuickAdd(text);
     if (!parsed.title) return;
-    const item = await createItem(db, { ...toItemInput(parsed, 'task'), projectId: project.id });
-    if (parsed.alerts.length) await setAlerts(db, item.id, parsed.alerts);
-    setText('');
+    await create({ ...toItemInput(parsed, 'task'), projectId: project.id }, { alerts: parsed.alerts, onCreated: () => setText('') });
   };
 
   const saveAsTemplate = async () => {
@@ -163,6 +163,7 @@ export default function ProjectScreen() {
           </Section>
         ) : null}
       </ScrollView>
+      {dialog}
     </>
   );
 }

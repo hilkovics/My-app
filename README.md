@@ -14,11 +14,35 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 
 | Záložka | Čo robí |
 | --- | --- |
-| **Dnes** | Program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, dnešné návyky, pripnuté poznámky, denník |
+| **Dnes** | Karta **Plán dňa** (prstenec, zaťaženie voči kapacite, upozornenia), program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, aktivity, pripnuté poznámky, denník |
 | **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
 | **Úlohy** | Prepínač **Zoznam / Nástenka / Projekty**. Zoznam: Inbox, Dnes, Naplánované, Hotové a rýchle pridávanie po slovensky; opakované úlohy sa po splnení posunú na ďalší termín. **Nástenka (Kanban)** so stavmi Na urobenie / Rozpracované / Čaká na… / Hotové. **Projekty** s progresom úloh |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
 | **Pokrok** | **Aktivity** (hra na nástroji, beh, mixovanie hudby… aj návyky), **Ciele**, **Fokus** (časovač sústredenej práce) a jeho **Štatistiky** |
+
+### Plán dňa (čas, náročnosť a kapacita)
+
+Návrh podľa pokynov „Vizuálne zobrazenie úloh a času“: ťuknutím na kartu **Plán dňa** na obrazovke Dnes.
+
+- **Odhad trvania** úlohy (5 min – 3 h; aj v rýchlom pridávaní: „na 90 min“). Úloha bez odhadu sa počíta ako ~30 min.
+- **Náročnosť** záznamu: 🔥 hlboká práca / rutina (predvolená) / ☕ pauza. Hlboká práca je sýta s hrubým okrajom,
+  rutina tlmená polopriehľadná, pauza šedozelená. Stav nie je len farba: pribudne aj ikona a text.
+- **Rozvrh podľa dĺžky:** karty sú naskladané za sebou a ich výška je striktne úmerná trvaniu (80 px na hodinu:
+  15 min = 20 px, 60 min = 80 px). Bloky do 15 min sú tenké prúžky. Čiara **kapacity** (predvolene 8 h, v Nastaveniach)
+  oddeľuje bloky, ktoré sa už nezmestia: dostanú červený okraj a ⚠. Pauzy kapacitu nespotrebúvajú.
+- **Prstenec dňa:** 24-hodinový kruh (polnoc hore, 15° na hodinu) s výsekmi úloh a udalostí, šedým oblúkom spánku
+  (nastaviteľný), bodkou „teraz“, vyblednutými minulými časťami, tenkým prstencom priebehu dňa a vnútorným prstencom
+  skutočne odpracovaného času z fokusu. Úlohy bez času sa navrhnú do prvého voľného času (čiarkovaný výsek).
+  Ťuknutím na výsek alebo kartu sa otvorí detail bloku (náročnosť, odhad, ▶ Fokus).
+- **Audit vyhorenia:** viac než 2 hlboké bloky za sebou bez pauzy (pauza = blok „pauza“ alebo medzera aspoň 15 min;
+  rutinné bloky pauzou nie sú) ukážu upozornenie na Dnes aj v pláne dňa. Preplnené dni majú červený krúžok v mesačnom kalendári.
+- **Plný deň:** pri pridaní úlohy do dňa, v ktorom nie je miesto (rýchle pridanie, nová úloha, nástenka, projekt,
+  plánovanie do času v kalendári, „Do tohto dňa“ v pláne), vyskočí dialóg: skrátiť odhad inej úlohy o 15 min,
+  presunúť na najbližší voľný deň, alebo pridať aj tak. Udalosti sa nikdy neblokujú.
+- **Režim sústredenia:** ▶ Fokus pri bloku spustí Pomodoro na jeho dĺžku, ostatné bloky (aj výseky prstenca) sa
+  stlmia a ostane rozsvietená len aktívna karta s odpočítavaním, pauzou a ukončením.
+- Logika je v čistých funkciách (`src/features/plan/layout.ts`), ktoré pre každý blok vracajú `dimensions`,
+  `visual_intensity` a `radial_position`, ako žiada špecifikácia.
 
 ### Projekty, nástenka, ciele a šablóny
 
@@ -122,6 +146,7 @@ src/
     items/repository.ts     # CRUD, konverzia typov, úlohy, tagy, prepojenia, checklist, upozornenia
     calendar/               # rozvinutie opakovaní, rozloženie dňa, kalendár telefónu
     notifications/          # výpočet časov upozornení + plánovanie cez expo-notifications
+    plan/                   # plán dňa: rozmery, náročnosť, prstenec, kapacita, audit vyhorenia
     projects/               # projekty, ciele, progres a odpočty
     templates/              # šablóny, opakované vytváranie, vzory
     activities/             # aktivity a záznamy, štatistiky (mapa dní, mix, ciele, série), prevod starých návykov

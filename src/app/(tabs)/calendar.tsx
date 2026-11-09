@@ -13,7 +13,11 @@ import { occurrencesOnDay, type Occurrence } from '@/features/calendar/agenda';
 import { editOccurrence, openOccurrence } from '@/features/calendar/open';
 import { useOccurrences } from '@/features/calendar/use-occurrences';
 import { listUnscheduledTasks, scheduleTask } from '@/features/items/repository';
+import { planSettingsOf } from '@/features/plan/data';
+import { buildDayPlan } from '@/features/plan/layout';
 import { getSettings } from '@/features/settings/repository';
+import { useNow } from '@/hooks/use-now';
+import { useCapacityGuard } from '@/components/plan/capacity-guard';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import {
@@ -21,10 +25,12 @@ import {
   addMonths,
   fmtDateLong,
   fmtMonthYear,
+  minutesOfDay,
   monthGrid,
   startOfDay,
   startOfMonth,
   startOfWeek,
+  withTime,
 } from '@/lib/dates';
 
 type Mode = 'month' | 'week' | 'day';
@@ -37,6 +43,7 @@ export default function CalendarScreen() {
   const [month, setMonth] = useState(() => startOfMonth(Date.now()));
   const [blockingTask, setBlockingTask] = useState<string | null>(null);
   const settings = useLiveQuery((d) => getSettings(d), []);
+  const { guard, dialog } = useCapacityGuard();
   const unscheduled = useLiveQuery((d) => listUnscheduledTasks(d), []) ?? [];
 
   const days = useMemo(() => {
@@ -50,6 +57,17 @@ export default function CalendarScreen() {
   const grid = useMemo(() => monthGrid(month), [month]);
   const [from, to] = mode === 'month' ? [grid[0], addDays(grid[41], 1)] : [days[0], addDays(days[days.length - 1], 1)];
   const occurrences = useOccurrences(from, to);
+
+  const now = useNow();
+  const planSettings = settings ? planSettingsOf(settings) : null;
+  // Days that hold more work than the day's capacity get a red ring in the month view.
+  let warnDays: Set<number> | undefined;
+  if (mode === 'month' && planSettings) {
+    warnDays = new Set<number>();
+    for (const day of grid) {
+      if (buildDayPlan(occurrencesOnDay(occurrences, day), day, planSettings, now).overflowMinutes > 0) warnDays.add(day);
+    }
+  }
 
   const dots = useMemo(() => {
     if (mode !== 'month') return undefined;
@@ -72,8 +90,19 @@ export default function CalendarScreen() {
 
   const onSlot = async (time: number) => {
     if (blockingTask) {
-      await scheduleTask(db, blockingTask, time, 60);
-      setBlockingTask(null);
+      // A full day can't take another task unless one is shortened or moved (dialog).
+      const task = unscheduled.find((x) => x.id === blockingTask);
+      const minutes = task?.estimateMinutes ?? 60;
+      await guard({
+        day: startOfDay(time),
+        minutes,
+        energy: task?.energy ?? null,
+        excludeId: blockingTask,
+        proceed: async (d) => {
+          await scheduleTask(db, blockingTask, withTime(d, 0, minutesOfDay(time)), minutes);
+          setBlockingTask(null);
+        },
+      });
     } else {
       router.push({ pathname: '/item/new', params: { type: 'event', start: String(time) } });
     }
@@ -133,6 +162,7 @@ export default function CalendarScreen() {
             month={month}
             selected={selected}
             dots={dots}
+            warnDays={warnDays}
             onSelect={(d) => {
               setSelected(d);
               if (new Date(d).getMonth() !== new Date(month).getMonth()) setMonth(startOfMonth(d));
@@ -195,6 +225,7 @@ export default function CalendarScreen() {
           />
         </>
       )}
+      {dialog}
     </Screen>
   );
 }

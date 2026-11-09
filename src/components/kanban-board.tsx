@@ -5,12 +5,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Radius, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import type { Item, TaskStatus } from '@/db/types';
-import { createItem, listBoardTasks, setAlerts, setTaskStatus } from '@/features/items/repository';
+import { listBoardTasks, setTaskStatus } from '@/features/items/repository';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { fmtDateTime, startOfDay } from '@/lib/dates';
 
+import { useGuardedCreate } from './plan/capacity-guard';
 import { STATUSES, StatusPicker } from './status-picker';
 import { ThemedText } from './themed-text';
 import { IconButton, Input } from './ui';
@@ -85,17 +86,15 @@ function Column({
   onMove: (item: Item, dir: -1 | 1) => void;
   onPick: (item: Item) => void;
 }) {
-  const db = useDb();
   const theme = useTheme();
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState('');
+  const { create, dialog } = useGuardedCreate();
 
   const add = async () => {
     const parsed = parseQuickAdd(text);
     if (!parsed.title) return;
-    const item = await createItem(db, { ...toItemInput(parsed, 'task'), projectId, status });
-    if (parsed.alerts.length) await setAlerts(db, item.id, parsed.alerts);
-    setText('');
+    await create({ ...toItemInput(parsed, 'task'), projectId, status }, { alerts: parsed.alerts, onCreated: () => setText('') });
   };
 
   return (
@@ -128,6 +127,7 @@ function Column({
           {t.board.emptyColumn}
         </ThemedText>
       )}
+      {dialog}
     </View>
   );
 }

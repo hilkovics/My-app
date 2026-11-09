@@ -24,6 +24,8 @@ import {
   normalizeTags,
   setAlerts,
   setChecklistDone,
+  setEnergy,
+  setEstimate,
   setTaskStatus,
   toggleTaskDone,
   unlinkItems,
@@ -38,6 +40,7 @@ import { hasPermission, requestPermission, supported as notificationsSupported }
 import { listProjects } from '@/features/projects/repository';
 import { getSettings } from '@/features/settings/repository';
 import { templateFromItem } from '@/features/templates/repository';
+import { EnergyChips, EstimateChips } from '@/components/plan/estimate-chips';
 import { STATUSES } from '@/components/status-picker';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
@@ -372,6 +375,31 @@ export default function ItemScreen() {
               </Row>
             </Field>
           </>
+        ) : null}
+
+        {type !== 'note' ? (
+          <Field label={t.plan.energy}>
+            <EnergyChips
+              value={item.energy}
+              onChange={(e) =>
+                void flush()
+                  .then(() => setEnergy(db, id, e))
+                  .then((u) => setDraft(toDraft(u)))
+              }
+            />
+          </Field>
+        ) : null}
+        {type === 'task' ? (
+          <Field label={t.plan.estimate}>
+            <EstimateChips
+              value={item.estimateMinutes}
+              onChange={(m) =>
+                void flush()
+                  .then(() => setEstimate(db, id, m))
+                  .then((u) => setDraft(toDraft(u)))
+              }
+            />
+          </Field>
         ) : null}
 
         {type !== 'note' ? (

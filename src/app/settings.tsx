@@ -18,6 +18,7 @@ import {
   type DeviceCalendar,
 } from '@/features/calendar/device';
 import { listAllItems } from '@/features/items/repository';
+import { fmtMinutes } from '@/features/focus/stats';
 import { ALERT_PRESETS, describeOffset } from '@/features/notifications/plan';
 import {
   hasPermission,
@@ -196,6 +197,33 @@ export default function SettingsScreen() {
             </>
           )}
         </Card>
+      </Section>
+
+      <Section title={t.plan.capacity}>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t.plan.capacityHint}
+        </ThemedText>
+        <Row>
+          {[240, 360, 420, 480, 540, 600].map((m) => (
+            <Chip key={m} label={fmtMinutes(m)} selected={settings.dayCapacityMinutes === m} onPress={() => void setSetting(db, 'dayCapacityMinutes', m)} />
+          ))}
+        </Row>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t.plan.sleepFrom}
+        </ThemedText>
+        <Row>
+          {[21, 22, 23, 0, 1].map((h) => (
+            <Chip key={h} label={`${h}:00`} selected={settings.sleepStartHour === h} onPress={() => void setSetting(db, 'sleepStartHour', h)} />
+          ))}
+        </Row>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t.plan.sleepTo}
+        </ThemedText>
+        <Row>
+          {[5, 6, 7, 8, 9].map((h) => (
+            <Chip key={h} label={`${h}:00`} selected={settings.sleepEndHour === h} onPress={() => void setSetting(db, 'sleepEndHour', h)} />
+          ))}
+        </Row>
       </Section>
 
       <Section title={t.settings.dayStart}>

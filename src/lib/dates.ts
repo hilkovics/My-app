@@ -164,3 +164,12 @@ export function snapToWeekday(from: number, weekday: number): number {
   const day = startOfDay(from);
   return addDays(day, (weekday - weekdayIndex(day) + 7) % 7);
 }
+
+/** Weekday names in the accusative ("na stredu", "v nedeľu"). */
+export const WEEKDAYS_ACC = ['pondelok', 'utorok', 'stredu', 'štvrtok', 'piatok', 'sobotu', 'nedeľu'];
+
+/** "stredu, 11. 11. 2026" — for phrases like "Presunúť na stredu, 11. 11. 2026". */
+export function fmtDateLongAcc(t: number): string {
+  const d = new Date(t);
+  return `${WEEKDAYS_ACC[weekdayIndex(d)]}, ${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
+}

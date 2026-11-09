@@ -18,6 +18,9 @@ export interface Db {
  */
 export type ItemType = 'event' | 'task' | 'note';
 
+/** How demanding an item is: deep work, routine/admin, or a break. null = routine. */
+export type Energy = 'deep' | 'routine' | 'rest';
+
 /** Kanban state of a task. 'done' <=> completedAt is set. */
 export type TaskStatus = 'todo' | 'doing' | 'waiting' | 'done';
 
@@ -42,6 +45,9 @@ export interface Item {
   status: TaskStatus | null;
   /** Who/what a 'waiting' task waits for. */
   waitingFor: string | null;
+  /** Estimated duration in minutes (tasks). */
+  estimateMinutes: number | null;
+  energy: Energy | null;
   createdAt: number;
   updatedAt: number;
   tags: string[];

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from
 
 import { Spacing } from '@/constants/theme';
 import { layoutDay, occurrencesOnDay, type Occurrence } from '@/features/calendar/agenda';
+import { shade, withAlpha } from '@/lib/color';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS_SHORT, addDays, fmtTime, minutesOfDay, startOfDay, weekdayIndex, withTime } from '@/lib/dates';
@@ -123,6 +124,9 @@ export function TimeGrid({
                   const height = Math.max(20, ((e - s) / 60_000) * (HOUR_HEIGHT / 60) - 2);
                   const color = occ.color ?? theme.accent;
                   const isTask = occ.kind === 'block' || occ.kind === 'due';
+                  // Only an explicit "deep work" / "break" changes the look here; routine stays as it was.
+                  const deepWork = occ.energy === 'deep';
+                  const restBreak = occ.energy === 'rest';
                   return (
                     <Pressable
                       key={occ.key}
@@ -135,16 +139,18 @@ export function TimeGrid({
                           height,
                           left: `${(column / columns) * 100}%`,
                           width: `${100 / columns}%`,
-                          backgroundColor: isTask ? theme.background : color,
-                          borderColor: color,
-                          borderStyle: occ.kind === 'due' ? 'dashed' : 'solid',
+                          backgroundColor: restBreak ? withAlpha(theme.success, 0.22) : isTask ? theme.background : color,
+                          borderColor: restBreak ? theme.success : deepWork ? shade(color, -0.4) : color,
+                          borderWidth: deepWork ? 3 : 1.5,
+                          borderStyle: occ.kind === 'due' || restBreak ? 'dashed' : 'solid',
                           opacity: occ.done ? 0.5 : 1,
                         },
                       ]}>
                       <ThemedText
                         type="small"
                         numberOfLines={height > 40 ? 2 : 1}
-                        style={[styles.eventText, isTask && { color: theme.text }]}>
+                        style={[styles.eventText, (isTask || restBreak) && { color: theme.text }]}>
+                        {deepWork ? '🔥 ' : restBreak ? '☕ ' : ''}
                         {isTask ? '☐ ' : ''}
                         {occ.hasNote ? '📝 ' : ''}
                         {occ.title}

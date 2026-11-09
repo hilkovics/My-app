@@ -7,9 +7,9 @@ import { Button, Card, Chip, Field, Input, Row, Segmented } from '@/components/u
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import type { ItemType } from '@/db/types';
-import { createItem, setAlerts } from '@/features/items/repository';
 import { parseQuickAdd, toItemInput, type Parsed } from '@/features/quickadd/parse';
 import { getSettings } from '@/features/settings/repository';
+import { useGuardedCreate } from '@/components/plan/capacity-guard';
 import { openCreated } from '@/features/templates/open';
 import { applyTemplate, listTemplates } from '@/features/templates/repository';
 import { useTheme } from '@/hooks/use-theme';
@@ -25,6 +25,7 @@ export default function NewItemScreen() {
   const theme = useTheme();
   const settings = useLiveQuery((d) => getSettings(d), []);
   const templates = useLiveQuery((d) => listTemplates(d), []) ?? [];
+  const { create: createGuarded, dialog } = useGuardedCreate();
   const [type, setType] = useState<ItemType>(params.type ?? 'task');
   const [text, setText] = useState('');
   const [body, setBody] = useState('');
@@ -53,15 +54,22 @@ export default function NewItemScreen() {
 
   const create = async (thenEdit: boolean) => {
     if (!parsed.title && !body.trim()) return;
-    const item = await createItem(db, { ...input, title: parsed.title, body: body.trim(), projectId: params.projectId ?? null });
     const timed = type === 'event' || (type === 'task' && (input.dueAt != null || input.startAt != null));
     const alerts = parsed.alerts.length ? parsed.alerts : type === 'event' ? (settings?.defaultAlerts ?? []) : [];
-    if (timed && alerts.length) await setAlerts(db, item.id, alerts);
-    if (thenEdit) router.replace({ pathname: '/item/[id]', params: { id: item.id } });
-    else goBack();
+    await createGuarded(
+      { ...input, title: parsed.title, body: body.trim(), projectId: params.projectId ?? null },
+      {
+        alerts: timed ? alerts : [],
+        onCreated: (item) => {
+          if (thenEdit) router.replace({ pathname: '/item/[id]', params: { id: item.id } });
+          else goBack();
+        },
+      },
+    );
   };
 
   return (
+    <>
     <ScrollView
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.content}
@@ -127,6 +135,8 @@ export default function NewItemScreen() {
         />
       </Row>
     </ScrollView>
+    {dialog}
+    </>
   );
 }
 

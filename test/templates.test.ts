@@ -197,3 +197,28 @@ describe('snapToWeekday', () => {
     assert.equal(snapToWeekday(at(2026, 11, 15, 8), 0), at(2026, 11, 16), 'Sunday → Monday');
   });
 });
+
+describe('colour helpers', () => {
+  it('adds alpha and shades colours', async () => {
+    const { shade, withAlpha, onColor } = await import('../src/lib/color');
+    assert.equal(withAlpha('#2a78d6', 0.5), '#2a78d680');
+    assert.equal(withAlpha('#2a78d6ff', 0), '#2a78d600');
+    assert.equal(shade('#ffffff', -0.5), '#808080');
+    assert.equal(shade('#000000', 0.5), '#808080');
+    assert.equal(shade('#336699', 1), '#ffffff');
+    assert.equal(shade('nope', 0.3), 'nope');
+    assert.equal(onColor('#eda100'), '#111214', 'yellow needs dark text');
+    assert.equal(onColor('#104281'), '#ffffff');
+    assert.equal(onColor('#2F6FEB'), '#ffffff', 'the app accent takes white text');
+    assert.equal(onColor('#1baf7a'), '#111214', 'a light green needs dark text');
+  });
+});
+
+describe('accusative date', () => {
+  it('uses the accusative form of weekdays', async () => {
+    const { fmtDateLongAcc } = await import('../src/lib/dates');
+    assert.equal(fmtDateLongAcc(at(2026, 11, 11, 9)), 'stredu, 11. 11. 2026');
+    assert.equal(fmtDateLongAcc(at(2026, 11, 15)), 'nedeľu, 15. 11. 2026');
+    assert.equal(fmtDateLongAcc(at(2026, 11, 12)), 'štvrtok, 12. 11. 2026');
+  });
+});

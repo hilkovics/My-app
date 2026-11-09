@@ -1,4 +1,4 @@
-import type { Item } from '../../db/types';
+import type { Energy, Item } from '../../db/types';
 import { DAY, startOfDay } from '../../lib/dates';
 import { occurrencesBetween, parseRule } from '../../lib/recurrence';
 
@@ -23,6 +23,11 @@ export interface Occurrence {
   notes?: string | null;
   /** A note is attached to this occurrence (see event-notes). */
   hasNote?: boolean;
+  /** Estimated duration of a task, in minutes. */
+  estimate?: number | null;
+  /** How demanding it is (null/undefined = routine). */
+  energy?: Energy | null;
+  priority?: number;
 }
 
 /** Expands events, time-blocked tasks and due tasks (incl. recurring) into occurrences in [from, to). */
@@ -45,6 +50,9 @@ export function expandItems(items: Item[], from: number, to: number): Occurrence
           color: item.color,
           done: item.completedAt != null,
           recurring: !!rule,
+          estimate: item.estimateMinutes,
+          energy: item.energy,
+          priority: item.priority,
         });
       }
     } else if (item.type === 'task' && item.dueAt != null) {
@@ -61,6 +69,9 @@ export function expandItems(items: Item[], from: number, to: number): Occurrence
           color: item.color,
           done: item.completedAt != null,
           recurring: !!rule,
+          estimate: item.estimateMinutes,
+          energy: item.energy,
+          priority: item.priority,
         });
       }
     }

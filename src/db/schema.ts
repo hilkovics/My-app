@@ -229,6 +229,11 @@ export const MIGRATIONS: Migration[] = [
     `);
     await insertSampleTemplates(db);
   },
+  // v6: time estimate of tasks and how demanding an item is (for the day plan)
+  `
+  ALTER TABLE items ADD COLUMN estimate_minutes INTEGER;
+  ALTER TABLE items ADD COLUMN energy TEXT CHECK (energy IN ('deep', 'routine', 'rest'));
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
