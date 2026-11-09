@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useChartColors } from '@/hooks/use-chart-colors';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
@@ -34,17 +34,17 @@ export function Heatmap({
   const today = startOfDay(useNow());
   const [selected, setSelected] = useState<number | null>(null);
   const scrollRef = useRef<ScrollViewInstance>(null);
-  const colorFor = (lvl: number) => (lvl === 0 ? theme.backgroundSelected : heat[lvl - 1]);
+  const colorFor = (lvl: number) => (lvl === 0 ? theme.surface2 : heat[lvl - 1]);
 
   return (
     <View style={styles.wrap}>
-      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-        {selected != null ? `${fmtDateShort(selected)}: ${describe(selected)}` : ' '}
+      <ThemedText type="meta" themeColor="text2" numberOfLines={2}>
+        {selected != null ? `${fmtDateShort(selected)}: ${describe(selected)}` : 'Ťukni na deň pre detail.'}
       </ThemedText>
       <View style={styles.row}>
         <View style={styles.dayLabels}>
           {DAY_LABELS.map((l, i) => (
-            <ThemedText key={i} type="small" themeColor="textSecondary" style={styles.dayLabel}>
+            <ThemedText key={i} type="small" themeColor="text2" style={styles.dayLabel}>
               {l}
             </ThemedText>
           ))}
@@ -63,7 +63,7 @@ export function Heatmap({
                   <ThemedText
                     key={w[0]}
                     type="small"
-                    themeColor="textSecondary"
+                    themeColor="text2"
                     style={[styles.monthLabel, { left: i * (CELL + GAP) }]}>
                     {MONTHS[m].slice(0, 3)}
                   </ThemedText>
@@ -87,7 +87,8 @@ export function Heatmap({
                           styles.cell,
                           {
                             backgroundColor: future ? 'transparent' : colorFor(lvl),
-                            borderColor: day === selected || day === today ? theme.text : 'transparent',
+                            borderColor: day === selected ? theme.text : 'transparent',
+                            borderWidth: day === selected ? 2 : 0,
                           },
                         ]}
                       />
@@ -100,13 +101,13 @@ export function Heatmap({
         </ScrollView>
       </View>
       <View style={styles.legend}>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.legendText}>
+        <ThemedText type="axis" themeColor="text2" style={styles.legendText}>
           menej
         </ThemedText>
         {[0, 1, 2, 3, 4].map((l) => (
           <View key={l} style={[styles.cell, styles.legendCell, { backgroundColor: colorFor(l) }]} />
         ))}
-        <ThemedText type="small" themeColor="textSecondary" style={styles.legendText}>
+        <ThemedText type="axis" themeColor="text2" style={styles.legendText}>
           viac
         </ThemedText>
       </View>
@@ -118,12 +119,12 @@ const styles = StyleSheet.create({
   wrap: { gap: Spacing.one },
   row: { flexDirection: 'row' },
   dayLabels: { paddingTop: 16, marginRight: 4 },
-  dayLabel: { height: CELL + GAP, fontSize: 10, lineHeight: CELL + GAP },
+  dayLabel: { height: CELL + GAP, fontSize: 9, lineHeight: CELL + GAP, fontFamily: FontFamily[700] },
   months: { height: 16 },
-  monthLabel: { position: 'absolute', fontSize: 10, lineHeight: 14 },
+  monthLabel: { position: 'absolute', fontSize: 9, lineHeight: 14, fontFamily: FontFamily[700] },
   grid: { flexDirection: 'row', paddingRight: 16 },
   week: { marginRight: GAP },
-  cell: { width: CELL, height: CELL, borderRadius: 3, marginBottom: GAP, borderWidth: 1 },
+  cell: { width: CELL, height: CELL, borderRadius: 3, marginBottom: GAP },
   legend: { flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-end' },
   legendText: { fontSize: 11, marginHorizontal: 2 },
   legendCell: { marginBottom: 0 },

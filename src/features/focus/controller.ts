@@ -3,6 +3,7 @@ import type { Db } from '../../db/types';
 import { MINUTE } from '../../lib/dates';
 import { cancelFixedNotification, scheduleFixedNotification } from '../notifications/scheduler';
 import { getSettings, setSetting } from '../settings/repository';
+import { setJustFinished } from './phase';
 import {
   finishDuePomodoro,
   getRunningSession,
@@ -26,6 +27,7 @@ async function syncFocusNotification(db: Db): Promise<void> {
 }
 
 export async function startFocus(db: Db, input: StartInput): Promise<FocusSession> {
+  setJustFinished(false);
   await endBreak(db);
   const s = await startSession(db, input);
   await syncFocusNotification(db);
@@ -56,6 +58,7 @@ export async function finishDueFocus(db: Db): Promise<FocusSession | null> {
 }
 
 export async function startBreak(db: Db, minutes?: number): Promise<void> {
+  setJustFinished(false);
   const len = minutes ?? (await getSettings(db)).breakMinutes;
   const until = Date.now() + len * MINUTE;
   await setSetting(db, 'breakUntil', until);

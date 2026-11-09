@@ -3,9 +3,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ColumnChart } from '@/components/column-chart';
 import { Heatmap } from '@/components/heatmap';
-import { Meter } from '@/components/meter';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, Empty, IconButton, Row, Section } from '@/components/ui';
+import { Button, Card, Empty, IconButton, Meter, Row, Section } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
@@ -52,10 +51,10 @@ export default function ActivityScreen() {
     }),
     [id, today],
   );
-  if (!data) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!data) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   if (!data.activity) {
     return (
-      <View style={[styles.content, { flex: 1, backgroundColor: theme.background }]}>
+      <View style={[styles.content, { flex: 1, backgroundColor: theme.bg }]}>
         <Empty text={t.item.notFound} />
       </View>
     );
@@ -106,7 +105,7 @@ function Detail({
           ),
         }}
       />
-      <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
         {a.kind === 'timed' && !a.archived ? (
           <Row>
             <Button
@@ -130,7 +129,7 @@ function Detail({
               <ThemedText type="smallBold">
                 {t.activities.weeklyGoal}: {fmtGoal(a, goalNow)}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 🔥 {plural(streak, 'týždeň', 'týždne', 'týždňov')} v rade
               </ThemedText>
             </Row>
@@ -204,7 +203,7 @@ function LogRow({ activity: a, log: l, now }: { activity: Activity; log: Activit
       <View style={[styles.bar, { backgroundColor: color(a.colorSlot) }]} />
       <View style={styles.flex}>
         <Row style={styles.between}>
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             {fmtDateShort(l.startedAt)}
             {a.kind === 'timed' ? ` · ${fmtTime(l.startedAt)}` : ''}
           </ThemedText>

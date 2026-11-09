@@ -363,3 +363,14 @@ describe('estimate and energy are stored', () => {
     await assert.rejects(db.runAsync("UPDATE items SET energy = 'wild' WHERE id = 't'"), 'energy is constrained');
   });
 });
+
+describe('entityColor', () => {
+  it('prefers the own colour and is stable otherwise', async () => {
+    const { entityColor } = await import('../src/features/plan/entity-color');
+    const palette = ['#111111', '#222222', '#333333', '#444444', '#555555', '#666666', '#777777', '#888888'];
+    assert.equal(entityColor('a', '#123456', palette), '#123456');
+    const c1 = entityColor('abc-123', null, palette);
+    assert.equal(c1, entityColor('abc-123', undefined, palette));
+    assert.ok(palette.includes(c1));
+  });
+});

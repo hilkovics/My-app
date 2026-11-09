@@ -1,7 +1,7 @@
 import { useCallback, useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import type { Energy, Item, ItemInput } from '@/db/types';
 import { fmtMinutes } from '@/features/focus/stats';
@@ -13,6 +13,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { DAY, addDays, fmtDateLong, fmtDateLongAcc, startOfDay } from '@/lib/dates';
 
+import { BottomSheet } from '../bottom-sheet';
 import { ThemedText } from '../themed-text';
 import { Button, Row } from '../ui';
 
@@ -91,74 +92,63 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
   const options = view ? shortenOptions(view.plan) : [];
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t.plan.dialog.cancel}>
-        <Pressable style={[styles.sheet, { backgroundColor: theme.background, borderColor: theme.border }]} onPress={() => {}}>
-          <ThemedText type="smallBold">
-            {t.plan.dialog.title} · {fmtDateLong(r.day)}
+    <BottomSheet visible onClose={onClose} title={`${t.plan.dialog.title} · ${fmtDateLong(r.day)}`} closeLabel={t.plan.dialog.cancel}>
+      {view ? (
+        <ThemedText type="bodySmall" themeColor="text2">
+          {t.plan.remaining} {fmtMinutes(view.plan.remainingMinutes)} · {fmtMinutes(view.plan.freeMinutes)} {t.plan.free} · pridávaš {fmtMinutes(r.minutes)}
+        </ThemedText>
+      ) : null}
+
+      {options.length ? (
+        <View style={styles.optionsBox}>
+          <ThemedText type="bodySmall" themeColor="text2" style={{ fontFamily: FontFamily[800] }}>
+            {t.plan.dialog.shorten}
           </ThemedText>
-          {view ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t.plan.remaining} {fmtMinutes(view.plan.remainingMinutes)} · {fmtMinutes(view.plan.freeMinutes)} {t.plan.free} · pridávaš {fmtMinutes(r.minutes)}
-            </ThemedText>
-          ) : null}
-
-          {options.length ? (
-            <>
-              <ThemedText type="smallBold" themeColor="textSecondary">
-                {t.plan.dialog.shorten}
+          {options.map((o) => (
+            <Row key={o.key} style={styles.optionRow}>
+              <ThemedText type="bodySmall" numberOfLines={1} style={styles.flex}>
+                {o.title} · {fmtMinutes(o.durationMin)}
               </ThemedText>
-              <ScrollView style={styles.options}>
-                {options.map((o) => (
-                  <Row key={o.key} style={styles.optionRow}>
-                    <ThemedText type="small" numberOfLines={1} style={styles.flex}>
-                      {o.title} · {fmtMinutes(o.durationMin)}
-                    </ThemedText>
-                    <Button
-                      small
-                      variant="secondary"
-                      label={`→ ${fmtMinutes(o.newMinutes)}`}
-                      disabled={busy === o.key}
-                      onPress={() => {
-                        setBusy(o.key);
-                        void setEstimate(db, o.id, o.newMinutes).finally(() => setBusy(null));
-                      }}
-                    />
-                  </Row>
-                ))}
-              </ScrollView>
-            </>
-          ) : null}
+              <Button
+                small
+                variant="secondary"
+                label={`→ ${fmtMinutes(o.newMinutes)}`}
+                disabled={busy === o.key}
+                onPress={() => {
+                  setBusy(o.key);
+                  void setEstimate(db, o.id, o.newMinutes).finally(() => setBusy(null));
+                }}
+              />
+            </Row>
+          ))}
+        </View>
+      ) : null}
 
-          {fits ? (
-            <ThemedText type="small" style={{ color: theme.success }}>
-              {t.plan.dialog.fits}
-            </ThemedText>
-          ) : null}
+      {fits ? (
+        <ThemedText type="bodySmall" style={{ color: theme.success, fontFamily: FontFamily[700] }}>
+          {t.plan.dialog.fits}
+        </ThemedText>
+      ) : null}
 
-          <Row style={styles.actions}>
-            {fits ? <Button small label={t.plan.dialog.add} onPress={() => onProceed(r.day)} /> : null}
-            {view?.freeDay != null ? (
-              <Button small variant="secondary" label={`${t.plan.dialog.moveTo} ${fmtDateLongAcc(view.freeDay)}`} onPress={() => onProceed(view.freeDay!)} />
-            ) : view ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t.plan.dialog.noFreeDay}
-              </ThemedText>
-            ) : null}
-            {!fits ? <Button small variant="secondary" label={t.plan.dialog.addAnyway} onPress={() => onProceed(r.day)} /> : null}
-            <Button small variant="ghost" label={t.plan.dialog.cancel} onPress={onClose} />
-          </Row>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <Row style={styles.actions}>
+        {fits ? <Button small label={t.plan.dialog.add} onPress={() => onProceed(r.day)} /> : null}
+        {view?.freeDay != null ? (
+          <Button small variant="secondary" label={`${t.plan.dialog.moveTo} ${fmtDateLongAcc(view.freeDay)}`} onPress={() => onProceed(view.freeDay!)} />
+        ) : view ? (
+          <ThemedText type="bodySmall" themeColor="text2">
+            {t.plan.dialog.noFreeDay}
+          </ThemedText>
+        ) : null}
+        {!fits ? <Button small variant="secondary" label={t.plan.dialog.addAnyway} onPress={() => onProceed(r.day)} /> : null}
+        <Button small variant="ghost" label={t.plan.dialog.cancel} onPress={onClose} />
+      </Row>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'center', padding: Spacing.three },
-  sheet: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.two, width: '100%', maxWidth: 440, alignSelf: 'center', maxHeight: '85%' },
-  options: { maxHeight: 220 },
+  optionsBox: { gap: Spacing.one },
   optionRow: { flexWrap: 'nowrap', justifyContent: 'space-between', paddingVertical: 2 },
   actions: { justifyContent: 'flex-end' },
 });

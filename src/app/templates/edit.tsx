@@ -36,7 +36,7 @@ export default function EditTemplateScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useTheme();
   const tpl = useLiveQuery((d) => (id ? getTemplate(d, id) : Promise.resolve(null)), [id ?? null]);
-  if (tpl === undefined) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (tpl === undefined) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <Editor key={tpl?.id ?? 'new'} template={tpl} />;
 }
 
@@ -96,7 +96,7 @@ function Editor({ template }: { template: Template | null }) {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Field label={t.templates.name}>
         <Input value={name} onChangeText={setName} placeholder="napr. Týždenná revízia" big autoFocus={!template} />
       </Field>
@@ -123,7 +123,7 @@ function Editor({ template }: { template: Template | null }) {
 
       <Field label={kind === 'project' ? t.templates.projectName : t.templates.recordTitle}>
         <Input value={title} onChangeText={setTitle} />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.templates.titleHint}
         </ThemedText>
       </Field>
@@ -168,7 +168,7 @@ function Editor({ template }: { template: Template | null }) {
           </Field>
           <Field label={t.templates.projectTasks}>
             <Input value={projectTasks} onChangeText={setProjectTasks} multiline style={styles.multi} autoCapitalize="sentences" />
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.templates.projectTasksHint}
             </ThemedText>
           </Field>
@@ -197,12 +197,12 @@ function Editor({ template }: { template: Template | null }) {
         ) : null}
         {repeat !== 'none' ? (
           <>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.templates.repeatFrom}
             </ThemedText>
             <DateTimeField value={startAt} withTime={false} allowClear={false} onChange={setStartAt} />
             {next != null ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.templates.next}: {fmtDateLong(next)}
               </ThemedText>
             ) : null}

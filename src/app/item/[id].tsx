@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { DateTimeField } from '@/components/date-time-field';
 import { ItemRow } from '@/components/item-row';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Checkbox, Chip, Empty, Field, IconButton, Input, Row, Section, Segmented } from '@/components/ui';
+import { Button, Checkbox, Chip, Empty, Field, IconButton, Input, Row, Section, Segmented, Swatch } from '@/components/ui';
 import { ITEM_COLORS, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import type { Item, ItemType } from '@/db/types';
@@ -148,12 +148,12 @@ export default function ItemScreen() {
 
   if (item === null) {
     return (
-      <View style={[styles.content, { flex: 1, backgroundColor: theme.background }]}>
+      <View style={[styles.content, { flex: 1, backgroundColor: theme.bg }]}>
         <Empty text={t.item.notFound} />
       </View>
     );
   }
-  if (!item || !draft) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!item || !draft) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
 
   const type = item.type;
   const rule = parseRule(draft.rrule);
@@ -214,7 +214,7 @@ export default function ItemScreen() {
         }}
       />
       <ScrollView
-        style={{ backgroundColor: theme.background }}
+        style={{ backgroundColor: theme.bg }}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled">
         <Segmented<ItemType>
@@ -269,7 +269,7 @@ export default function ItemScreen() {
               }
             />
             {focusMinutes >= 1 ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.focus.worked}: {fmtMinutes(focusMinutes)}
               </ThemedText>
             ) : null}
@@ -335,7 +335,7 @@ export default function ItemScreen() {
                   />
                 </Row>
               ) : (
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" themeColor="text2">
                   {t.item.noBlock} – naplánuješ v Kalendári (týždeň/deň).
                 </ThemedText>
               )}
@@ -428,7 +428,7 @@ export default function ItemScreen() {
                 </Row>
                 {rule ? (
                   <Row>
-                    <ThemedText type="small" themeColor="textSecondary">
+                    <ThemedText type="small" themeColor="text2">
                       Každých
                     </ThemedText>
                     <Button small variant="secondary" label="−" onPress={() => setRule({ ...rule, interval: Math.max(1, rule.interval - 1) })} />
@@ -456,7 +456,7 @@ export default function ItemScreen() {
                 ) : null}
               </>
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 Najprv nastav termín.
               </ThemedText>
             )}
@@ -476,7 +476,7 @@ export default function ItemScreen() {
               ))}
             </Row>
             {!notificationsSupported ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 Upozornenia fungujú v mobilnej aplikácii.
               </ThemedText>
             ) : null}
@@ -509,7 +509,7 @@ export default function ItemScreen() {
           <Row>
             <Chip label="—" selected={draft.color == null} onPress={() => patch({ color: null })} />
             {ITEM_COLORS.map((c) => (
-              <Chip key={c} label={draft.color === c ? '✓' : ' '} color={c} selected onPress={() => patch({ color: c })} />
+              <Swatch key={c} color={c} label={`Farba ${c}`} selected={draft.color === c} onPress={() => patch({ color: c })} />
             ))}
             <Chip label={`📌 ${t.item.pinned}`} selected={draft.pinned} onPress={() => patch({ pinned: !draft.pinned })} />
           </Row>
@@ -530,10 +530,10 @@ export default function ItemScreen() {
             <Row key={c.id} style={styles.checkRow}>
               <Checkbox checked={c.done} label={c.text} onPress={() => void setChecklistDone(db, c.id, !c.done)} />
               <ThemedText
-                style={[styles.flex, c.done && { textDecorationLine: 'line-through', color: theme.textSecondary }]}>
+                style={[styles.flex, c.done && { textDecorationLine: 'line-through', color: theme.text2 }]}>
                 {c.text}
               </ThemedText>
-              <IconButton name="close" size={16} label={t.common.delete} color={theme.textSecondary} onPress={() => void deleteChecklistEntry(db, c.id)} />
+              <IconButton name="close" size={16} label={t.common.delete} color={theme.text2} onPress={() => void deleteChecklistEntry(db, c.id)} />
             </Row>
           ))}
           <Input
@@ -564,11 +564,11 @@ export default function ItemScreen() {
               <View style={styles.flex}>
                 <ItemRow item={l} />
               </View>
-              <IconButton name="close" size={16} label="Zrušiť prepojenie" color={theme.textSecondary} onPress={() => void unlinkItems(db, id, l.id)} />
+              <IconButton name="close" size={16} label="Zrušiť prepojenie" color={theme.text2} onPress={() => void unlinkItems(db, id, l.id)} />
             </Row>
           ))}
           {external ? (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               📱 Prepojené s udalosťou v kalendári telefónu
             </ThemedText>
           ) : null}
@@ -590,7 +590,7 @@ export default function ItemScreen() {
           />
         ) : null}
 
-        <ThemedText type="small" themeColor="textSecondary" style={styles.meta}>
+        <ThemedText type="small" themeColor="text2" style={styles.meta}>
           Vytvorené {fmtDateTime(item.createdAt)} · upravené {fmtDateTime(item.updatedAt)}
         </ThemedText>
       </ScrollView>

@@ -71,7 +71,7 @@ export default function NewItemScreen() {
   return (
     <>
     <ScrollView
-      style={{ backgroundColor: theme.background }}
+      style={{ backgroundColor: theme.bg }}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
       <Segmented<ItemType>
@@ -114,13 +114,13 @@ export default function NewItemScreen() {
         <Card>
           <ThemedText type="smallBold">{parsed.title || t.common.untitled}</ThemedText>
           {summary.length ? (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {summary.join(' · ')}
             </ThemedText>
           ) : null}
         </Card>
       ) : (
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.quickAdd.hint}
         </ThemedText>
       )}

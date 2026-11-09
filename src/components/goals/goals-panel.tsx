@@ -16,7 +16,7 @@ export function GoalsPanel() {
   return (
     <>
       {views.length ? views.map((v) => <GoalCard key={v.goal.id} view={v} now={now} />) : <Empty text={t.goals.empty} />}
-      <Button variant="secondary" icon="add" label={t.goals.new} onPress={() => router.push('/goal/edit')} />
+      <Button variant="ink" icon="add" label={t.goals.new} onPress={() => router.push('/goal/edit')} />
     </>
   );
 }

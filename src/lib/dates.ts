@@ -124,6 +124,21 @@ export function fmtRelativeDay(t: number, now: number = Date.now()): string {
   return fmtDateShort(t);
 }
 
+/** "UTOROK · 10. 11." (the date pill of the Dnes hero zone). */
+export function fmtDatePill(t: number): string {
+  const d = new Date(t);
+  return `${WEEKDAYS_LONG[weekdayIndex(d)].toUpperCase()} · ${d.getDate()}. ${d.getMonth() + 1}.`;
+}
+
+/** Lowercase relative label used in meta lines: dnes / zajtra / včera / "so 7. 11.". */
+export function fmtRelDay(t: number, now: number = Date.now()): string {
+  const diff = Math.round((startOfDay(t) - startOfDay(now)) / DAY);
+  if (diff === 0) return 'dnes';
+  if (diff === 1) return 'zajtra';
+  if (diff === -1) return 'včera';
+  return fmtDateShort(t);
+}
+
 export function fmtDateTime(t: number, allDay = false, now = Date.now()): string {
   const day = fmtRelativeDay(t, now);
   return allDay ? day : `${day} ${fmtTime(t)}`;

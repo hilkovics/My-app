@@ -10,6 +10,8 @@ export interface StackSeries {
   key: string;
   name: string;
   color: string;
+  /** Emoji used in the selected-column line instead of the name. */
+  icon?: string;
 }
 
 const LABEL_WIDTH = 40;
@@ -26,6 +28,7 @@ export function StackedColumnChart({
   titles,
   formatValue,
   height = 150,
+  legend = true,
 }: {
   series: StackSeries[];
   /** values[column][series] */
@@ -36,6 +39,8 @@ export function StackedColumnChart({
   titles: string[];
   formatValue: (v: number) => string;
   height?: number;
+  /** Colour legend under the chart (off when a totals table does that job). */
+  legend?: boolean;
 }) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
@@ -43,19 +48,20 @@ export function StackedColumnChart({
   const totals = values.map((row) => row.reduce((a, b) => a + b, 0));
   const max = Math.max(1, ...totals) * 1.1;
   const slot = values.length ? width / values.length : 0;
-  const barWidth = Math.max(2, Math.min(24, slot - 4));
+  const barWidth = Math.max(2, Math.min(18, slot - 4));
   const sel = selected != null ? selected : null;
 
   const tooltip =
     sel != null
-      ? `${titles[sel]}: ${formatValue(totals[sel])}${series
-          .map((s, i) => (values[sel][i] > 0 ? ` · ${s.name} ${formatValue(values[sel][i])}` : ''))
-          .join('')}`
-      : ' ';
+      ? `${titles[sel]}: ${series
+          .map((s, i) => (values[sel][i] > 0 ? `${s.icon ?? s.name} ${formatValue(values[sel][i])}` : null))
+          .filter(Boolean)
+          .join(' · ') || 'nič'}`
+      : 'Ťukni na stĺpec pre detail.';
 
   return (
     <View style={styles.wrap}>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.tooltip}>
+      <ThemedText type="meta" themeColor="text2" style={styles.tooltip}>
         {tooltip}
       </ThemedText>
       <View style={[styles.plot, { height, borderColor: theme.border }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
@@ -65,10 +71,10 @@ export function StackedColumnChart({
             <Pressable
               key={c}
               accessibilityRole="button"
-              accessibilityLabel={`${titles[c]}: ${formatValue(totals[c])}`}
+              accessibilityLabel={`${titles[c]}: ${series.map((x, i) => (row[i] > 0 ? `${x.name} ${formatValue(row[i])}` : null)).filter(Boolean).join(', ') || 'nič'}`}
               onPress={() => setSelected(c === selected ? null : c)}
               style={styles.slot}>
-              <View style={{ width: barWidth, opacity: sel != null && sel !== c ? 0.45 : 1 }}>
+              <View style={{ width: barWidth, opacity: sel != null && sel !== c ? 0.4 : 1 }}>
                 {/* Render top → bottom so the first series sits on the baseline. */}
                 {visible
                   .slice()
@@ -95,22 +101,24 @@ export function StackedColumnChart({
           l ? (
             <ThemedText
               key={i}
-              type="small"
-              themeColor="textSecondary"
+              type="axis"
+              themeColor="text2"
               style={[styles.label, { left: (i + 0.5) * slot - LABEL_WIDTH / 2 }]}>
               {l}
             </ThemedText>
           ) : null,
         )}
       </View>
-      <View style={styles.legend}>
-        {series.map((s) => (
-          <View key={s.key} style={styles.legendItem}>
-            <View style={[styles.swatch, { backgroundColor: s.color }]} />
-            <ThemedText type="small">{s.name}</ThemedText>
-          </View>
-        ))}
-      </View>
+      {legend ? (
+        <View style={styles.legend}>
+          {series.map((s) => (
+            <View key={s.key} style={styles.legendItem}>
+              <View style={[styles.swatch, { backgroundColor: s.color }]} />
+              <ThemedText type="meta">{s.name}</ThemedText>
+            </View>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }

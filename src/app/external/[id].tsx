@@ -51,7 +51,7 @@ export default function ExternalEventScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
       <Card>
         <ThemedText type="subtitle" style={styles.title}>
           {p.title}
@@ -60,9 +60,9 @@ export default function ExternalEventScreen() {
           {fmtDateLong(start)}
           {allDay ? ` · ${t.common.allDay}` : ` · ${fmtTime(start)}–${fmtTime(end)}`}
         </ThemedText>
-        {p.location ? <ThemedText themeColor="textSecondary">📍 {p.location}</ThemedText> : null}
+        {p.location ? <ThemedText themeColor="text2">📍 {p.location}</ThemedText> : null}
         {p.calendarTitle ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             📱 {p.calendarTitle}
           </ThemedText>
         ) : null}

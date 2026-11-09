@@ -16,7 +16,7 @@ export default function TemplatesScreen() {
   const db = useDb();
   const theme = useTheme();
   const templates = useLiveQuery((d) => listTemplates(d), []);
-  if (!templates) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!templates) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
 
   const restore = async () => {
     const n = await restoreSamples(db);
@@ -24,7 +24,7 @@ export default function TemplatesScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
       {templates.length ? templates.map((tpl) => <Row_ key={tpl.id} tpl={tpl} />) : <Empty text={t.templates.empty} />}
       <Button icon="add" label={t.templates.new} onPress={() => router.push('/templates/edit')} />
       <Button variant="secondary" label={t.templates.restore} onPress={() => void restore()} />
@@ -40,7 +40,7 @@ function Row_({ tpl }: { tpl: Template }) {
       <ThemedText type="smallBold" onPress={() => router.push({ pathname: '/templates/edit', params: { id: tpl.id } })} accessibilityRole="button">
         {tpl.icon} {tpl.name}
       </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="small" themeColor="text2">
         {t.templates[tpl.kind]}
         {rule ? ` · 🔁 ${describeRule(rule).toLowerCase()}` : ''}
       </ThemedText>

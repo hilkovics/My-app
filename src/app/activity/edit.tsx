@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Button, Chip, Field, Input, Row, Segmented } from '@/components/ui';
+import { Button, Chip, Field, Input, Row, Segmented, Swatch } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
@@ -57,7 +57,7 @@ export default function EditActivityScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useTheme();
   const activity = useLiveQuery((d) => (id ? getActivity(d, id) : Promise.resolve(null)), [id ?? null]);
-  if (id && activity === undefined) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (id && activity === undefined) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <Editor key={activity?.id ?? 'new'} activity={activity ?? null} />;
 }
 
@@ -100,7 +100,7 @@ function Editor({ activity }: { activity: Activity | null }) {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {!activity ? (
         <Field label={t.activities.templates}>
           <Row>
@@ -126,17 +126,17 @@ function Editor({ activity }: { activity: Activity | null }) {
       <Field label={t.activities.color}>
         <Row>
           {slots.map((c, i) => (
-            <Chip
+            <Swatch
               key={c}
-              label={(d.colorSlot ?? activity?.colorSlot) === i ? '✓' : ' '}
               color={c}
-              selected
+              label={`Farba ${i + 1}`}
+              selected={(d.colorSlot ?? activity?.colorSlot) === i}
               onPress={() => patch({ colorSlot: i })}
             />
           ))}
         </Row>
         {d.colorSlot == null && !activity ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             Farba sa priradí automaticky.
           </ThemedText>
         ) : null}

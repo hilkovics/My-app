@@ -2,14 +2,18 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { Icon } from './icon';
+
+import { Opacity, Radius } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import type { Item, TaskStatus } from '@/db/types';
 import { listBoardTasks, setTaskStatus } from '@/features/items/repository';
+import { restoreSnapshot, snapshotOf } from '@/features/items/snapshot';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
-import { fmtDateTime, startOfDay } from '@/lib/dates';
+import { fmtRelDay, fmtTime, startOfDay } from '@/lib/dates';
+import { toast } from '@/lib/toast-store';
 
 import { useGuardedCreate } from './plan/capacity-guard';
 import { STATUSES, StatusPicker } from './status-picker';
@@ -33,14 +37,16 @@ export function KanbanBoard({ projectId }: { projectId?: string | null }) {
     const current: TaskStatus = item.completedAt != null ? 'done' : (item.status ?? 'todo');
     const target = STATUSES[STATUSES.indexOf(current) + dir];
     if (!target) return;
+    const before = snapshotOf(item);
     const updated = await setTaskStatus(db, item.id, target);
+    if (target === 'done') toast(`Hotovo: ${item.title || t.common.untitled}`, { undo: () => void restoreSnapshot(db, item.id, before) });
     // Moving into "waiting" without saying for whom: offer to fill it in.
     if (target === 'waiting' && !updated.waitingFor) setPicking(updated);
   };
 
   return (
     <>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.columns} keyboardShouldPersistTaps="handled">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.columns} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         {STATUSES.map((status) => (
           <Column
             key={status}
@@ -54,6 +60,9 @@ export function KanbanBoard({ projectId }: { projectId?: string | null }) {
           />
         ))}
       </ScrollView>
+      <ThemedText type="meta" themeColor="text2">
+        Podrž kartu pre výber stavu · ◀ ▶ presúva medzi stĺpcami
+      </ThemedText>
       <StatusPicker
         visible={picking != null}
         title={picking?.title ?? ''}
@@ -98,14 +107,12 @@ function Column({
   };
 
   return (
-    <View style={[styles.column, { backgroundColor: theme.backgroundElement }]}>
+    <View style={[styles.column, { backgroundColor: theme.surface2 }]}>
       <View style={styles.header}>
-        <ThemedText type="smallBold" style={styles.flex}>
-          {t.status[status]} · {items.length}
+        <ThemedText type="cardTitle" style={styles.flex} numberOfLines={1}>
+          {t.status[status]} <ThemedText type="cardTitle" themeColor="text2" tabular>{items.length}</ThemedText>
         </ThemedText>
-        {status !== 'done' ? (
-          <IconButton name={adding ? 'close' : 'add'} size={18} label={t.board.addHere} onPress={() => setAdding(!adding)} />
-        ) : null}
+        {status !== 'done' ? <IconButton name={adding ? 'close' : 'add'} size={22} label={`${t.board.addHere}: ${t.status[status]}`} onPress={() => setAdding(!adding)} /> : null}
       </View>
       {adding ? (
         <Input
@@ -123,9 +130,11 @@ function Column({
           <Card key={item.id} item={item} status={status} now={now} showProject={showProject} onMove={onMove} onPick={onPick} />
         ))
       ) : (
-        <ThemedText type="small" themeColor="textSecondary" style={styles.empty}>
-          {t.board.emptyColumn}
-        </ThemedText>
+        <View style={[styles.empty, { borderColor: theme.text2 }]}>
+          <ThemedText type="bodySmall" themeColor="text2">
+            {t.board.emptyColumn}
+          </ThemedText>
+        </View>
       )}
       {dialog}
     </View>
@@ -153,15 +162,17 @@ function Card({
   const dateOnly = when != null && startOfDay(when) === when;
   const overdue = status !== 'done' && item.dueAt != null && (startOfDay(item.dueAt) === item.dueAt ? item.dueAt < startOfDay(now) : item.dueAt < now);
   const meta = [
-    when != null ? fmtDateTime(when, dateOnly, now) : null,
+    when != null ? `${fmtRelDay(when, now)}${dateOnly ? '' : ` ${fmtTime(when)}`}` : null,
     status === 'waiting' && item.waitingFor ? `⏳ ${item.waitingFor}` : null,
     showProject ? item.projectName : null,
   ].filter(Boolean);
+  const first = index === 0;
+  const last = index === STATUSES.length - 1;
   return (
     <View
       role="group"
       accessibilityLabel={`${item.title || t.common.untitled}`}
-      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
+      style={[styles.card, { backgroundColor: theme.surface, opacity: status === 'done' ? 0.6 : 1 }]}>
       {/* The tappable part is separate from the arrows (buttons must not nest). */}
       <Pressable
         accessibilityRole="button"
@@ -169,31 +180,50 @@ function Card({
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         onLongPress={() => onPick(item)}
         style={({ pressed }) => [styles.cardBody, pressed && { opacity: 0.7 }]}>
-        <ThemedText numberOfLines={3} style={status === 'done' ? { textDecorationLine: 'line-through', color: theme.textSecondary } : undefined}>
-          {PRIORITY_MARK[item.priority] ? <ThemedText style={{ color: theme.danger, fontWeight: 700 }}>{PRIORITY_MARK[item.priority]} </ThemedText> : null}
+        <ThemedText type="cardTitle" numberOfLines={3} style={[styles.cardTitle, status === 'done' && { textDecorationLine: 'line-through', color: theme.text2 }]}>
+          {PRIORITY_MARK[item.priority] ? <ThemedText type="cardTitle" style={[styles.cardTitle, { color: theme.dangerText }]}>{PRIORITY_MARK[item.priority]} </ThemedText> : null}
           {item.title || t.common.untitled}
         </ThemedText>
         {meta.length ? (
-          <ThemedText type="small" numberOfLines={2} style={{ color: overdue ? theme.danger : theme.textSecondary }}>
+          <ThemedText type="meta" numberOfLines={2} style={{ color: overdue ? theme.dangerText : theme.text2, fontSize: 12, lineHeight: 17 }}>
             {meta.join(' · ')}
           </ThemedText>
         ) : null}
       </Pressable>
       <View style={styles.arrows}>
-        <IconButton name="chevronLeft" size={18} label={t.board.moveLeft} color={index === 0 ? theme.border : theme.text} onPress={() => index > 0 && onMove(item, -1)} />
-        <IconButton name="chevronRight" size={18} label={t.board.moveRight} color={index === STATUSES.length - 1 ? theme.border : theme.text} onPress={() => index < STATUSES.length - 1 && onMove(item, 1)} />
+        <ArrowButton dir="left" disabled={first} label={t.board.moveLeft} onPress={() => onMove(item, -1)} />
+        <ArrowButton dir="right" disabled={last} label={t.board.moveRight} onPress={() => onMove(item, 1)} />
       </View>
     </View>
   );
 }
 
+/** 44 × 44 square arrow (◀ ▶), disabled at 30 % in the first and last column. */
+function ArrowButton({ dir, disabled, label, onPress }: { dir: 'left' | 'right'; disabled: boolean; label: string; onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [styles.arrow, { backgroundColor: theme.surface2, opacity: disabled ? 0.3 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] }]}>
+      <Icon name={dir === 'left' ? 'chevronLeft' : 'chevronRight'} size={22} color={theme.text} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  columns: { gap: Spacing.two, paddingRight: Spacing.three, alignItems: 'flex-start' },
-  column: { width: 272, borderRadius: Radius.lg, padding: Spacing.two, gap: Spacing.two },
-  header: { flexDirection: 'row', alignItems: 'center', paddingLeft: Spacing.one },
-  empty: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.one },
-  card: { borderRadius: Radius.md, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.two + 2, gap: 4 },
+  scroll: { marginHorizontal: -16 },
+  columns: { gap: 12, paddingHorizontal: 16, alignItems: 'flex-start' },
+  column: { width: 272, borderRadius: Radius.ringCard - 6, padding: 10, gap: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingLeft: 6, minHeight: 44 },
+  empty: { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: Radius.boardCard, paddingVertical: 20, alignItems: 'center', opacity: Opacity.archived + 0.1 },
+  card: { borderRadius: Radius.boardCard, padding: 12, gap: 8 },
   cardBody: { gap: 4 },
+  cardTitle: { fontSize: 15, lineHeight: 20 },
   arrows: { flexDirection: 'row', justifyContent: 'space-between' },
+  arrow: { width: 44, height: 44, borderRadius: Radius.buttonSquare, alignItems: 'center', justifyContent: 'center' },
 });

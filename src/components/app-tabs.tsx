@@ -1,7 +1,7 @@
 import { NativeTabs } from 'expo-router/native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { FontFamily } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 
 import { TAB_ICONS } from './icon';
@@ -14,21 +14,29 @@ export const TABS = [
   { name: 'progress', label: t.tabs.progress, icon: TAB_ICONS.chart },
 ] as const;
 
+/** Native bottom tabs in the Impulz colours: selected = mark, others = text2, 10 px labels. */
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-
+  const theme = useTheme();
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundSelected}
-      labelStyle={{ selected: { color: colors.text } }}>
-      {TABS.map((tab) => (
-        <NativeTabs.Trigger key={tab.name} name={tab.name}>
-          <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={tab.icon.ios} md={tab.icon.md} />
-        </NativeTabs.Trigger>
-      ))}
+      backgroundColor={theme.tabBg}
+      indicatorColor={theme.markSoft}
+      tintColor={theme.mark}
+      shadowColor={theme.border}
+      iconColor={{ default: theme.text2, selected: theme.mark }}
+      labelStyle={{
+        default: { color: theme.text2, fontFamily: FontFamily[600], fontSize: 10 },
+        selected: { color: theme.mark, fontFamily: FontFamily[800], fontSize: 10 },
+      }}>
+      {TABS.map((tab) => {
+        const filled = 'iosFilled' in tab.icon ? tab.icon.iosFilled : tab.icon.ios;
+        return (
+          <NativeTabs.Trigger key={tab.name} name={tab.name}>
+            <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon sf={{ default: tab.icon.ios, selected: filled }} md={tab.icon.md} />
+          </NativeTabs.Trigger>
+        );
+      })}
     </NativeTabs>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import { listSessions } from '@/features/focus/repository';
 import {
@@ -15,7 +15,6 @@ import {
 } from '@/features/focus/stats';
 import { getSettings, setSetting } from '@/features/settings/repository';
 import { useNow } from '@/hooks/use-now';
-import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import {
   WEEKDAYS_SHORT,
@@ -31,7 +30,7 @@ import {
 
 import { ColumnChart } from '../column-chart';
 import { ThemedText } from '../themed-text';
-import { Card, Chip, IconButton, Row, Section, Segmented } from '../ui';
+import { Card, Chip, IconButton, Section, Segmented, StatTile } from '../ui';
 
 type Period = 'week' | 'month';
 const GOALS = [60, 120, 180, 240, 300, 360];
@@ -61,44 +60,55 @@ export function StatsPanel() {
   const bestWin = bestWindow(byHour);
 
   const step = (dir: number) => setAnchor(period === 'week' ? addDays(anchor, dir * 7) : addMonths(anchor, dir));
+  const lastDay = addDays(to, -1);
+  const [d1, d2] = [new Date(from), new Date(lastDay)];
   const title =
-    period === 'week' ? `${fmtDateShort(from).slice(3)} – ${fmtDateShort(addDays(to, -1)).slice(3)}` : fmtMonthYear(from);
+    period === 'week'
+      ? d1.getMonth() === d2.getMonth()
+        ? `${d1.getDate()}. – ${d2.getDate()}. ${d2.getMonth() + 1}.`
+        : `${d1.getDate()}. ${d1.getMonth() + 1}. – ${d2.getDate()}. ${d2.getMonth() + 1}.`
+      : fmtMonthYear(from);
   const selectedIndex = series.findIndex((d) => d.day === today);
+
+  const bestRange = bestWin ?? null;
 
   return (
     <>
-      <Segmented<Period>
-        value={period}
-        onChange={(p) => {
-          setPeriod(p);
-          setAnchor(today);
-        }}
-        options={[
-          { value: 'week', label: t.calendar.week },
-          { value: 'month', label: t.calendar.month },
-        ]}
-      />
-      <Row style={styles.nav}>
-        <IconButton name="chevronLeft" label="Späť" onPress={() => step(-1)} />
-        <ThemedText type="smallBold" style={styles.navTitle}>
+      <View style={styles.periodRow}>
+        <View style={styles.segment}>
+          <Segmented<Period>
+            value={period}
+            onChange={(p) => {
+              setPeriod(p);
+              setAnchor(today);
+            }}
+            variant="filter"
+            options={[
+              { value: 'week', label: t.calendar.week },
+              { value: 'month', label: t.calendar.month },
+            ]}
+          />
+        </View>
+        <ThemedText type="bodySmall" tabular style={{ fontFamily: FontFamily[800] }}>
           {title}
         </ThemedText>
-        <IconButton name="chevronRight" label="Ďalej" onPress={() => step(1)} />
-      </Row>
+      </View>
 
       <View style={styles.tiles}>
-        <Tile label={t.focus.total} value={fmtMinutes(sum.totalMinutes)} />
-        <Tile label={t.focus.average} value={fmtMinutes(sum.avgMinutes)} />
-        <Tile
-          label={t.focus.bestDay}
-          value={sum.best ? fmtMinutes(sum.best.minutes) : '–'}
-          sub={sum.best ? fmtDateShort(sum.best.day) : undefined}
-        />
-        <Tile label={t.focus.streak} value={`🔥 ${streak}`} sub={t.focus.streakSub} />
+        <StatTile basis="45%" label={t.focus.total} value={fmtMinutes(sum.totalMinutes)} />
+        <StatTile basis="45%" label={t.focus.average} value={fmtMinutes(sum.avgMinutes)} />
+        <StatTile basis="45%" label={t.focus.bestDay} value={sum.best ? fmtMinutes(sum.best.minutes) : '–'} sub={sum.best ? fmtDateShort(sum.best.day) : undefined} />
+        <StatTile basis="45%" label={t.focus.streak} value={`🔥 ${streak}`} sub={t.focus.streakSub} />
       </View>
 
       <Card>
-        <ThemedText type="smallBold">{t.focus.perDay}</ThemedText>
+        <View style={styles.cardHead}>
+          <ThemedText type="cardTitle" style={styles.flex}>
+            {t.focus.perDay}
+          </ThemedText>
+          <IconButton name="chevronLeft" label="Predchádzajúce obdobie" onPress={() => step(-1)} />
+          <IconButton name="chevronRight" label="Nasledujúce obdobie" onPress={() => step(1)} />
+        </View>
         <ColumnChart
           key={`${period}-${from}`}
           data={series.map((d, i) => ({
@@ -116,61 +126,49 @@ export function StatsPanel() {
           goalLabel={`${t.focus.goal} ${fmtMinutes(goal)}`}
           formatValue={fmtMinutes}
           initialSelected={selectedIndex >= 0 ? selectedIndex : undefined}
+          yTicks={[120, 240]}
+          highlight={(i) => series[i]?.day === today}
+          valuesToggle
         />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="meta" themeColor="text2" tabular>
           {t.focus.daysWithGoal}: {sum.daysWithGoal}
         </ThemedText>
       </Card>
 
       <Section title={t.focus.dailyGoal}>
-        <Row>
+        <View style={styles.goalChips}>
           {GOALS.map((g) => (
             <Chip key={g} label={fmtMinutes(g)} selected={goal === g} onPress={() => void setSetting(db, 'focusGoalMinutes', g)} />
           ))}
-        </Row>
+        </View>
       </Section>
 
       <Card>
-        <ThemedText type="smallBold">{t.focus.byHour}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {bestWin ? `${t.focus.bestWindow} ${bestWin[0]}:00 – ${bestWin[1]}:00.` : t.focus.noData}
+        <ThemedText type="cardTitle">{t.focus.byHour}</ThemedText>
+        <ThemedText type="bodySmall" themeColor="text2">
+          {bestRange ? `${t.focus.bestWindow} ${bestRange[0]}:00 – ${bestRange[1]}:00.` : t.focus.noData}
         </ThemedText>
         <ColumnChart
           height={100}
           data={byHour.map((v, h) => ({
             key: String(h),
-            label: h % 6 === 0 ? `${h}h` : '',
+            label: h === 0 || h === 6 || h === 12 || h === 18 ? `${h}:00` : h === 23 ? '23:00' : '',
             value: v,
             title: `${h}:00–${h + 1}:00`,
           }))}
           formatValue={(v) => `${fmtMinutes(v)} ${t.focus.in30days}`}
+          highlight={(h) => bestRange != null && h >= bestRange[0] && h < bestRange[1]}
         />
       </Card>
     </>
   );
 }
 
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  const theme = useTheme();
-  return (
-    <View style={[styles.tile, { backgroundColor: theme.backgroundElement }]}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText style={styles.tileValue}>{value}</ThemedText>
-      {sub ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {sub}
-        </ThemedText>
-      ) : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  nav: { justifyContent: 'space-between', flexWrap: 'nowrap' },
-  navTitle: { flex: 1, textAlign: 'center' },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  tile: { flexGrow: 1, flexBasis: '45%', borderRadius: Radius.lg, padding: Spacing.three, gap: 2 },
-  tileValue: { fontSize: 22, lineHeight: 28, fontWeight: 600 },
+  flex: { flex: 1 },
+  periodRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+  segment: { width: 180 },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  cardHead: { flexDirection: 'row', alignItems: 'center', marginRight: -8 },
+  goalChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

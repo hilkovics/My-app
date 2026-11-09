@@ -127,13 +127,21 @@ export function bestWindow(byHour: number[]): [number, number] | null {
   return best > 0 ? [at, (at + 2) % 24] : null;
 }
 
-/** "2 h 05 min", "45 min", "0 min" */
+const NBSP = '\u00a0';
+
+/** "2 h 5 min", "1 h 15 min", "45 min", "0 min" (non-breaking spaces, minutes not zero-padded). */
 export function fmtMinutes(min: number): string {
   const m = Math.round(min);
-  if (m < 60) return `${m} min`;
+  if (m < 60) return `${m}${NBSP}min`;
   const h = Math.floor(m / 60);
   const r = m % 60;
-  return r ? `${h} h ${String(r).padStart(2, '0')} min` : `${h} h`;
+  return r ? `${h}${NBSP}h${NBSP}${r}${NBSP}min` : `${h}${NBSP}h`;
+}
+
+/** Compact clock of a minute count: 405 → "6:45". */
+export function hm(min: number): string {
+  const m = Math.max(0, Math.round(min));
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 }
 
 /** Clock display for a running timer: "1:05:09" or "25:00". */

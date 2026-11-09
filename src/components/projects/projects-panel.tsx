@@ -39,7 +39,7 @@ export function ProjectsPanel() {
 
   return (
     <>
-      <Button variant="secondary" icon="add" label={t.projects.new} onPress={() => router.push('/project/edit')} />
+      <Button variant="ink" icon="add" label={t.projects.new} onPress={() => router.push('/project/edit')} />
       {data.templates.length ? (
         <Section title={t.projects.fromTemplate}>
           <Row>
@@ -47,6 +47,7 @@ export function ProjectsPanel() {
               <Chip
                 key={tpl.id}
                 label={`${tpl.icon} ${tpl.name}`}
+                soft
                 onPress={() =>
                   void applyTemplate(db, tpl).then(({ id }) => router.push({ pathname: '/project/[id]', params: { id } }))
                 }
@@ -60,8 +61,9 @@ export function ProjectsPanel() {
         <>
           <Button
             small
-            variant="ghost"
-            label={`${t.projects.finished} (${finished.length}) ${showFinished ? '▲' : '▼'}`}
+            variant="secondary"
+            icon={showFinished ? 'expandLess' : 'expandMore'}
+            label={`${t.projects.finished} (${finished.length})`}
             onPress={() => setShowFinished(!showFinished)}
           />
           {showFinished ? finished.map(card) : null}

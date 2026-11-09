@@ -1,14 +1,7 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
-
-import { Colors } from '@/constants/theme';
+import { Themes, type Theme } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? 'dark' : 'light';
-
-  return Colors[theme];
+/** The active theme: colours plus the derived alpha mixes. Follows the system setting. */
+export function useTheme(): Theme {
+  return Themes[useColorScheme() === 'dark' ? 'dark' : 'light'];
 }

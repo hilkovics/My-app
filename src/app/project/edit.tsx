@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DateTimeField } from '@/components/date-time-field';
-import { Button, Chip, Field, Input, Row } from '@/components/ui';
+import { Button, Chip, Field, Input, Row, Swatch } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
@@ -29,7 +29,7 @@ export default function EditProjectScreen() {
     async (d) => ({ project: id ? await getProject(d, id) : null, goals: await listGoals(d) }),
     [id ?? null],
   );
-  if (!data) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!data) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <Editor key={data.project?.id ?? 'new'} project={data.project} goals={data.goals} />;
 }
 
@@ -64,7 +64,7 @@ function Editor({ project, goals }: { project: Project | null; goals: Awaited<Re
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Field label={t.projects.name}>
         <Input value={name} onChangeText={setName} placeholder="napr. Koncert" big autoFocus={!project} />
       </Field>
@@ -78,7 +78,7 @@ function Editor({ project, goals }: { project: Project | null; goals: Awaited<Re
       <Field label={t.projects.color}>
         <Row>
           {slots.map((c, i) => (
-            <Chip key={c} label={(slot ?? project?.colorSlot) === i ? '✓' : ' '} color={c} selected onPress={() => setSlot(i)} />
+            <Swatch key={c} color={c} label={`Farba ${i + 1}`} selected={(slot ?? project?.colorSlot) === i} onPress={() => setSlot(i)} />
           ))}
         </Row>
       </Field>
