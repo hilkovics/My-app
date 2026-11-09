@@ -1,17 +1,14 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
 import type { TaskStatus } from '@/db/types';
-import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 
-import { ThemedText } from './themed-text';
+import { BottomSheet } from './bottom-sheet';
 import { Button, Chip, Input, Row } from './ui';
 
 export const STATUSES: TaskStatus[] = ['todo', 'doing', 'waiting', 'done'];
 
-/** Modal for choosing a task's state (and who/what a waiting task waits for). */
+/** Bottom sheet for choosing a task's state (and who/what a waiting task waits for). */
 export function StatusPicker({
   visible,
   title,
@@ -27,27 +24,20 @@ export function StatusPicker({
   onSave: (status: TaskStatus, waitingFor: string | null) => void;
   onCancel: () => void;
 }) {
-  const theme = useTheme();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.backdrop} onPress={onCancel} accessibilityLabel={t.board.cancel}>
-        <Pressable style={[styles.sheet, { backgroundColor: theme.bg, borderColor: theme.border }]} onPress={() => {}}>
-          {/* Remounted per opening so the draft starts from the task's current values. */}
-          {visible ? <PickerBody title={title} status={status} waitingFor={waitingFor} onSave={onSave} onCancel={onCancel} /> : null}
-        </Pressable>
-      </Pressable>
-    </Modal>
+    <BottomSheet visible={visible} onClose={onCancel} title={title || t.common.untitled} closeLabel={t.board.cancel}>
+      {/* Remounted per opening so the draft starts from the task's current values. */}
+      {visible ? <PickerBody status={status} waitingFor={waitingFor} onSave={onSave} onCancel={onCancel} /> : null}
+    </BottomSheet>
   );
 }
 
 function PickerBody({
-  title,
   status,
   waitingFor,
   onSave,
   onCancel,
 }: {
-  title: string;
   status: TaskStatus;
   waitingFor: string | null;
   onSave: (status: TaskStatus, waitingFor: string | null) => void;
@@ -57,9 +47,6 @@ function PickerBody({
   const [who, setWho] = useState(waitingFor ?? '');
   return (
     <>
-      <ThemedText type="smallBold" numberOfLines={2}>
-        {title || t.common.untitled}
-      </ThemedText>
       <Row>
         {STATUSES.map((s) => (
           <Chip key={s} label={t.status[s]} selected={draft === s} onPress={() => setDraft(s)} />
@@ -68,24 +55,10 @@ function PickerBody({
       {draft === 'waiting' ? (
         <Input value={who} onChangeText={setWho} placeholder={t.board.waitingPlaceholder} autoFocus accessibilityLabel={t.board.waitingFor} />
       ) : null}
-      <Row style={styles.actions}>
+      <Row style={{ justifyContent: 'flex-end' }}>
         <Button small variant="secondary" label={t.board.cancel} onPress={onCancel} />
         <Button small label={t.board.save} onPress={() => onSave(draft, draft === 'waiting' ? who.trim() || null : null)} />
       </Row>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'center', padding: Spacing.three },
-  sheet: {
-    borderRadius: Radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.three,
-    gap: Spacing.three,
-    width: '100%',
-    maxWidth: 420,
-    alignSelf: 'center',
-  },
-  actions: { justifyContent: 'flex-end' },
-});

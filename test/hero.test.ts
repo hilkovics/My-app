@@ -94,3 +94,31 @@ describe('date pill', () => {
     assert.equal(fmtDatePill(at(2026, 11, 10, 11)), 'UTOROK · 10. 11.');
   });
 });
+
+describe('quick-add preview', () => {
+  const NOW = at(2026, 11, 10, 11, 10);
+  const rel = (d: number) => (d === at(2026, 11, 11) ? 'zajtra' : d === at(2026, 11, 10) ? 'dnes' : 'neskôr');
+
+  it('lists the recognised parts in the design order', async () => {
+    const { parseQuickAdd } = await import('../src/features/quickadd/parse');
+    const { quickPreview } = await import('../src/features/quickadd/preview');
+    const chips = quickPreview(parseQuickAdd('zajtra 9:00 report !2 #práca pripomeň', NOW), rel);
+    assert.deepEqual(chips, ['📅 zajtra 9:00', '!!', '#práca', '🔔 pripomenúť']);
+  });
+
+  it('falls back to Inbox and describes repeats', async () => {
+    const { parseQuickAdd } = await import('../src/features/quickadd/parse');
+    const { quickPreview } = await import('../src/features/quickadd/preview');
+    assert.deepEqual(quickPreview(parseQuickAdd('kúpiť mlieko', NOW), rel), ['📥 Inbox']);
+    const rep = quickPreview(parseQuickAdd('každý pondelok o 8 posilka', NOW), rel);
+    assert.ok(rep.some((c) => c.startsWith('🔁 každý pondelok')), rep.join('|'));
+  });
+
+  it('chooses the filter the new task lands in', async () => {
+    const { parseQuickAdd } = await import('../src/features/quickadd/parse');
+    const { landingView } = await import('../src/features/quickadd/preview');
+    assert.equal(landingView(parseQuickAdd('kúpiť mlieko', NOW), NOW), 'inbox');
+    assert.equal(landingView(parseQuickAdd('dnes report', NOW), NOW), 'today');
+    assert.equal(landingView(parseQuickAdd('zajtra report', NOW), NOW), 'upcoming');
+  });
+});

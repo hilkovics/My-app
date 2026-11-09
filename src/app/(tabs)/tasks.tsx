@@ -1,67 +1,60 @@
-import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ItemRow } from '@/components/item-row';
-import { ThemedText } from '@/components/themed-text';
 import { KanbanBoard } from '@/components/kanban-board';
 import { useGuardedCreate } from '@/components/plan/capacity-guard';
 import { ProjectsPanel } from '@/components/projects/projects-panel';
-import { Chip, Empty, IconButton, Input, Screen, Segmented } from '@/components/ui';
-import { useLiveQuery, useNow } from '@/db/hooks';
-import { checklistProgress, listTasks, type TaskView } from '@/features/items/repository';
+import { QuickAddField } from '@/components/quick-add-field';
+import { Chip, Empty, HeaderButtons, Screen, Segmented } from '@/components/ui';
+import { useDb, useLiveQuery, useNow } from '@/db/hooks';
+import { checklistProgress, deleteItem, listTasks, type TaskView } from '@/features/items/repository';
 import { listProjects } from '@/features/projects/repository';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
+import { QUICK_ADD_HINT, landingView, quickPreview } from '@/features/quickadd/preview';
 import { t } from '@/i18n/sk';
-import { describeRule } from '@/lib/recurrence';
-import { fmtDateTime } from '@/lib/dates';
+import { fmtRelDay } from '@/lib/dates';
+import { toast } from '@/lib/toast-store';
 
-function TaskList() {
+function TaskList({ requested }: { requested: TaskView | undefined }) {
+  const db = useDb();
   const { create, dialog } = useGuardedCreate();
   const now = useNow();
-  const [view, setView] = useState<TaskView>('today');
+  const [view, setView] = useState<TaskView>(requested ?? 'today');
+  // A link from another screen (Dnes › "Všetky") can ask for a filter; applied once per request.
+  const [seen, setSeen] = useState(requested);
+  if (requested !== seen) {
+    setSeen(requested);
+    if (requested) setView(requested);
+  }
   const [text, setText] = useState('');
   const tasks = useLiveQuery((d) => listTasks(d, view, now), [view, Math.floor(now / 3_600_000)]) ?? [];
   const progress = useLiveQuery((d) => checklistProgress(d), []);
 
   const parsed = text.trim() ? parseQuickAdd(text) : null;
-  const preview = parsed
-    ? [
-        parsed.day != null ? fmtDateTime(parsed.day + (parsed.minutes ?? 0) * 60_000, parsed.minutes == null) : null,
-        parsed.rule ? describeRule(parsed.rule) : null,
-        parsed.priority ? `priorita ${parsed.priority}` : null,
-        ...parsed.tags.map((x) => `#${x}`),
-        parsed.alerts.length ? '🔔' : null,
-      ]
-        .filter(Boolean)
-        .join(' · ')
-    : '';
+  const chips = parsed ? quickPreview(parsed, (day) => fmtRelDay(day, now)) : null;
 
   const add = async () => {
     if (!parsed?.title) return;
-    await create(toItemInput(parsed, 'task'), { alerts: parsed.alerts, onCreated: () => setText('') });
+    const where = parsed.day != null ? fmtRelDay(parsed.day, now) : 'Inbox';
+    await create(toItemInput(parsed, 'task'), {
+      alerts: parsed.alerts,
+      onCreated: (item) => {
+        setText('');
+        setView(landingView(parsed, now));
+        toast(`Pridané: ${item.title} · ${where}`, { undo: () => void deleteItem(db, item.id) });
+      },
+    });
   };
 
   return (
     <>
-      <View style={{ gap: 6 }}>
-        <Input
-          value={text}
-          onChangeText={setText}
-          placeholder={t.tasks.quickAdd}
-          returnKeyType="done"
-          onSubmitEditing={() => void add()}
-          submitBehavior="submit"
-        />
-        {preview ? (
-          <ThemedText type="small" themeColor="text2">
-            {preview}
-          </ThemedText>
-        ) : null}
-      </View>
+      <QuickAddField value={text} onChangeText={setText} onSubmit={() => void add()} placeholder={t.tasks.quickAdd} chips={chips} hint={QUICK_ADD_HINT} />
       <Segmented<TaskView>
         value={view}
         onChange={setView}
+        variant="filter"
         options={[
           { value: 'inbox', label: t.tasks.inbox },
           { value: 'today', label: t.tasks.today },
@@ -84,19 +77,13 @@ function TaskList() {
 type TasksView = 'list' | 'board' | 'projects';
 
 export default function TasksScreen() {
+  const params = useLocalSearchParams<{ view?: TaskView }>();
   const [view, setView] = useState<TasksView>('list');
   const [projectId, setProjectId] = useState<string | null>(null);
   const projects = useLiveQuery((d) => listProjects(d, 'active'), []) ?? [];
 
   return (
-    <Screen
-      title={t.tabs.tasks}
-      actions={
-        <>
-          <IconButton name="search" label={t.common.search} onPress={() => router.push('/search')} />
-          <IconButton name="settings" label={t.common.settings} onPress={() => router.push('/settings')} />
-        </>
-      }>
+    <Screen title={t.tabs.tasks} actions={<HeaderButtons />}>
       <Segmented<TasksView>
         value={view}
         onChange={setView}
@@ -106,7 +93,7 @@ export default function TasksScreen() {
           { value: 'projects', label: t.taskViews.projects },
         ]}
       />
-      {view === 'list' ? <TaskList /> : null}
+      {view === 'list' ? <TaskList requested={params.view} /> : null}
       {view === 'board' ? (
         <>
           {projects.length ? (
