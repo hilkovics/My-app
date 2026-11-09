@@ -6,10 +6,9 @@ import { useCapacityGuard } from '@/components/plan/capacity-guard';
 import { DayRing } from '@/components/plan/day-ring';
 import { EntrySheet } from '@/components/plan/entry-sheet';
 import { PlanColumn } from '@/components/plan/plan-column';
-import { Meter } from '@/components/meter';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, Chip, Empty, IconButton, Row, Section } from '@/components/ui';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Button, Card, Chip, Empty, IconButton, Meter, Row, Section } from '@/components/ui';
+import { FontFamily, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import { finishDueFocus, pauseFocus, resumeFocus, stopFocus } from '@/features/focus/controller';
 import { getRunningSession, listSessions, pomodoroEndsAt } from '@/features/focus/repository';
@@ -44,7 +43,7 @@ export default function PlanScreen() {
     if (endsAt != null && now >= endsAt) void finishDueFocus(db);
   }, [db, endsAt, now]);
 
-  if (!plan) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!plan) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
 
   const isToday = day === today;
   const elapsed = isToday ? nowAngle(day, now) : day < today ? 360 : null;
@@ -71,7 +70,7 @@ export default function PlanScreen() {
   return (
     <>
       <Stack.Screen options={{ title: t.plan.title }} />
-      <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
         <Row style={styles.nav}>
           <IconButton name="chevronLeft" label="Predchádzajúci deň" onPress={() => setDay(addDays(day, -1))} />
           <ThemedText type="smallBold" style={styles.navTitle} numberOfLines={1}>
@@ -83,13 +82,13 @@ export default function PlanScreen() {
 
         {running ? (
           <Card style={[styles.focusCard, { borderColor: theme.accent }]}>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.plan.focusMode} · {t.plan.focusOn}
             </ThemedText>
             <ThemedText type="smallBold" numberOfLines={1}>
               {running.itemTitle ?? running.tag ?? t.focus.noSubject}
             </ThemedText>
-            <ThemedText style={[styles.clock, running.pausedAt != null && { color: theme.textSecondary }]}>{countdown}</ThemedText>
+            <ThemedText style={[styles.clock, running.pausedAt != null && { color: theme.text2 }]}>{countdown}</ThemedText>
             <Row style={styles.center}>
               {running.pausedAt != null ? (
                 <Button small icon="play" label={t.focus.resume} onPress={() => void resumeFocus(db)} />
@@ -123,7 +122,7 @@ export default function PlanScreen() {
             onSelect={setSelectedKey}
             label={`${t.plan.ring}: ${t.plan.planned} ${fmtMinutes(plan.plannedMinutes)} ${t.plan.of} ${fmtMinutes(plan.capacityMinutes)}`}>
             <ThemedText style={styles.ringBig}>{fmtMinutes(plan.plannedMinutes)}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.plan.of} {fmtMinutes(plan.capacityMinutes)}
             </ThemedText>
             <ThemedText type="smallBold" style={{ color: over ? theme.danger : plan.full ? theme.warning : theme.success }}>
@@ -136,7 +135,7 @@ export default function PlanScreen() {
           <Legend color={theme.accent} label={t.plan.legendDeep} swatch="solid" />
           <Legend color={theme.accent} label={t.plan.legendRoutine} swatch="muted" />
           <Legend color={theme.success} label={t.plan.legendRest} swatch="muted" />
-          <Legend color={theme.textSecondary} label={t.plan.legendSleep} swatch="muted" />
+          <Legend color={theme.text2} label={t.plan.legendSleep} swatch="muted" />
           <Legend color={theme.accent} label={t.plan.legendTentative} swatch="dashed" />
           <Legend color={theme.accent} label={t.plan.legendWork} swatch="thin" />
         </View>
@@ -146,7 +145,7 @@ export default function PlanScreen() {
             <ThemedText type="smallBold">
               {t.plan.planned} {fmtMinutes(plan.plannedMinutes)} {t.plan.of} {fmtMinutes(plan.capacityMinutes)}
             </ThemedText>
-            <ThemedText type="small" style={{ color: over ? theme.danger : theme.textSecondary }}>
+            <ThemedText type="small" style={{ color: over ? theme.danger : theme.text2 }}>
               {over ? `+${fmtMinutes(plan.overflowMinutes)} ${t.plan.over}` : `${fmtMinutes(plan.freeMinutes)} ${t.plan.free}`}
             </ThemedText>
           </Row>
@@ -167,7 +166,7 @@ export default function PlanScreen() {
               <Row key={task.id} style={styles.backlogRow}>
                 <View style={styles.flex}>
                   <ThemedText numberOfLines={1}>{task.title || t.common.untitled}</ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
+                  <ThemedText type="small" themeColor="text2">
                     {task.estimateMinutes ? fmtMinutes(task.estimateMinutes) : `~${fmtMinutes(DEFAULT_ESTIMATE_MIN)} (${t.plan.guessed})`}
                   </ThemedText>
                 </View>
@@ -199,7 +198,7 @@ function Legend({ color, label, swatch }: { color: string; label: string; swatch
           swatch === 'thin' && { backgroundColor: color, height: 4, alignSelf: 'center' },
         ]}
       />
-      <ThemedText type="small" style={{ color: theme.textSecondary }}>
+      <ThemedText type="small" style={{ color: theme.text2 }}>
         {label}
       </ThemedText>
     </View>
@@ -215,9 +214,9 @@ const styles = StyleSheet.create({
   between: { justifyContent: 'space-between' },
   focusCard: { borderWidth: 2 },
   warn: { borderWidth: 2 },
-  clock: { fontSize: 44, lineHeight: 52, fontWeight: 300, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 44, lineHeight: 52, fontFamily: FontFamily[700], textAlign: 'center', fontVariant: ['tabular-nums'] },
   ringWrap: { alignItems: 'center' },
-  ringBig: { fontSize: 32, lineHeight: 38, fontWeight: 600 },
+  ringBig: { fontSize: 32, lineHeight: 38, fontFamily: FontFamily[800] },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   swatch: { width: 14, height: 10, borderRadius: 2 },

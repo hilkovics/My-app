@@ -23,10 +23,10 @@ export default function GoalScreen() {
     },
     [id, Math.floor(now / 60_000)],
   );
-  if (view === undefined) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (view === undefined) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   if (view === null) {
     return (
-      <View style={[styles.content, { flex: 1, backgroundColor: theme.background }]}>
+      <View style={[styles.content, { flex: 1, backgroundColor: theme.bg }]}>
         <Empty text={t.item.notFound} />
       </View>
     );
@@ -40,7 +40,7 @@ export default function GoalScreen() {
           headerRight: () => <IconButton name="settings" label={t.goals.edit} onPress={() => router.push({ pathname: '/goal/edit', params: { id: goal.id } })} />,
         }}
       />
-      <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
         <GoalCard view={view} now={now} onPress={() => {}} />
         <Section title={t.goals.projects}>
           {view.projects.length ? (

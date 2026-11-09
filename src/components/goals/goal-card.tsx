@@ -7,9 +7,8 @@ import { fmtCountdown, fmtGoalValue } from '@/features/projects/stats';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 
-import { Meter } from '../meter';
 import { ThemedText } from '../themed-text';
-import { Card } from '../ui';
+import { Card, Meter } from '../ui';
 
 /** Summary line about the plan, e.g. "Zaostávaš za plánom (podľa plánu by si mal mať 25,8 km)". */
 export function planText(view: GoalView): string | null {
@@ -35,7 +34,7 @@ export function GoalCard({ view, now, onPress }: { view: GoalView; now: number; 
             <ThemedText type="smallBold" numberOfLines={1}>
               {goal.name}
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+            <ThemedText type="small" themeColor="text2" numberOfLines={1}>
               {goal.kind === 'projects'
                 ? `${p.value}/${p.target} ${t.goals.tasksDone}`
                 : `${fmtGoalValue(p.value, p.unit)} / ${fmtGoalValue(p.target, p.unit)}`}

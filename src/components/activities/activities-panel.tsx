@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
   getRunningActivity,
@@ -41,10 +41,9 @@ import { onColor } from '@/lib/color';
 import { MINUTE, WEEKDAYS_SHORT, plural, addDays, startOfDay, weekdayIndex, ymd } from '@/lib/dates';
 
 import { Heatmap } from '../heatmap';
-import { Meter } from '../meter';
 import { StackedColumnChart } from '../stacked-column-chart';
 import { ThemedText } from '../themed-text';
-import { Button, Card, Empty, Row, Section } from '../ui';
+import { Button, Card, Empty, Meter, Row, Section } from '../ui';
 
 /** Stops the running activity timer and opens the entry to add km / rating / note. */
 export async function stopAndFinish(db: Parameters<typeof stopActivity>[0]) {
@@ -94,10 +93,10 @@ function RunningCard({ run, activity, now }: { run: ActivityLog; activity?: Acti
   const { activity: color } = useChartColors();
   return (
     <Card style={[styles.running, { borderColor: color(activity?.colorSlot ?? 0) }]}>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="small" themeColor="text2">
         {t.activities.running} · {activity ? `${activity.icon} ${activity.name}` : ''}
       </ThemedText>
-      <ThemedText style={[styles.clock, run.pausedAt != null && { color: theme.textSecondary }]}>
+      <ThemedText style={[styles.clock, run.pausedAt != null && { color: theme.text2 }]}>
         {fmtClock(logDuration(run, now))}
       </ThemedText>
       <Row style={styles.center}>
@@ -125,7 +124,7 @@ function CardHeader({ activity, sub }: { activity: Activity; sub: string }) {
         <ThemedText type="smallBold" numberOfLines={1}>
           {activity.name}
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+        <ThemedText type="small" themeColor="text2" numberOfLines={1}>
           {sub}
         </ThemedText>
       </View>
@@ -198,7 +197,7 @@ function CheckCard({ activity: a, logs, now }: { activity: Activity; logs: Activ
               onPress={() => void logCheck(db, a.id, ymd(day), done ? -count : 1)}
               onLongPress={() => void logCheck(db, a.id, ymd(day), -1)}
               style={styles.dayCell}>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.dayLabel}>
+              <ThemedText type="small" themeColor="text2" style={styles.dayLabel}>
                 {WEEKDAYS_SHORT[weekdayIndex(day)]}
               </ThemedText>
               <View
@@ -252,7 +251,7 @@ function YearMap({ activities, logs, grid, now }: { activities: Activity[]; logs
     <Section title={t.activities.yearMap}>
       <Card>
         <Heatmap weeks={grid} levelOf={(day) => heatLevel(perDay.get(ymd(day)) ?? 0, scale)} describe={describe} />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.activities.yearMapHint}
         </ThemedText>
       </Card>
@@ -277,7 +276,7 @@ function WeeklyMixCard({ activities, logs, now }: { activities: Activity[]; logs
               titles={weeks.map((w) => `týždeň od ${new Date(w).getDate()}. ${new Date(w).getMonth() + 1}.`)}
               formatValue={fmtMinutes}
             />
-            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.totalsTitle}>
+            <ThemedText type="smallBold" themeColor="text2" style={styles.totalsTitle}>
               {t.activities.mixTotals}
             </ThemedText>
             {mix.series.map((s, i) => (
@@ -301,7 +300,7 @@ function WeeklyMixCard({ activities, logs, now }: { activities: Activity[]; logs
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   running: { borderWidth: 2, gap: Spacing.two },
-  clock: { fontSize: 48, lineHeight: 56, fontWeight: 300, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 48, lineHeight: 56, fontFamily: FontFamily[700], textAlign: 'center', fontVariant: ['tabular-nums'] },
   center: { justifyContent: 'center' },
   between: { justifyContent: 'space-between', flexWrap: 'nowrap' },
   head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
@@ -311,6 +310,6 @@ const styles = StyleSheet.create({
   strip: { flexDirection: 'row', justifyContent: 'space-between' },
   dayCell: { alignItems: 'center', gap: 4, flex: 1 },
   dayLabel: { fontSize: 11 },
-  box: { width: 34, height: 34, borderRadius: Radius.sm, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  box: { width: 34, height: 34, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   totalsTitle: { marginTop: Spacing.two },
 });

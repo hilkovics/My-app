@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
   endBreak,
@@ -31,9 +31,8 @@ import { t } from '@/i18n/sk';
 import { confirm } from '@/lib/confirm';
 import { MINUTE, addDays, fmtTime, startOfDay } from '@/lib/dates';
 
-import { Meter } from '../meter';
 import { ThemedText } from '../themed-text';
-import { Button, Card, Chip, Empty, IconButton, Input, Row, Section, Segmented } from '../ui';
+import { Button, Card, Chip, Empty, IconButton, Input, Meter, Row, Section, Segmented } from '../ui';
 
 const POMODORO_PRESETS = [25, 50, 90];
 
@@ -102,11 +101,11 @@ export function TimerPanel() {
       <Card style={styles.card}>
         {running ? (
           <>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {running.mode === 'pomodoro' ? `${t.focus.pomodoro} · ${running.plannedMinutes} min` : t.focus.stopwatch}
               {running.pausedAt != null ? ` · ${t.focus.paused}` : ''}
             </ThemedText>
-            <ThemedText style={[styles.clock, { color: running.pausedAt != null ? theme.textSecondary : theme.text }]}>
+            <ThemedText style={[styles.clock, { color: running.pausedAt != null ? theme.text2 : theme.text }]}>
               {endsAt != null
                 ? fmtClock(endsAt - now)
                 : running.mode === 'pomodoro' && running.plannedMinutes != null
@@ -116,7 +115,7 @@ export function TimerPanel() {
             {running.mode === 'pomodoro' && running.plannedMinutes ? (
               <Meter value={sessionDuration(running, now) / (running.plannedMinutes * MINUTE)} />
             ) : null}
-            <ThemedText themeColor="textSecondary" numberOfLines={1}>
+            <ThemedText themeColor="text2" numberOfLines={1}>
               {[running.itemTitle, running.tag ? `#${running.tag}` : null].filter(Boolean).join(' · ') || t.focus.noSubject}
             </ThemedText>
             <Row style={styles.center}>
@@ -130,7 +129,7 @@ export function TimerPanel() {
           </>
         ) : onBreak ? (
           <>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               ☕ {t.focus.break}
             </ThemedText>
             <ThemedText style={styles.clock}>{fmtClock(breakUntil - now)}</ThemedText>
@@ -176,12 +175,12 @@ export function TimerPanel() {
                 ))}
               </Row>
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.focus.stopwatchHint}
               </ThemedText>
             )}
 
-            <ThemedText type="smallBold" themeColor="textSecondary">
+            <ThemedText type="smallBold" themeColor="text2">
               {t.focus.workingOn}
             </ThemedText>
             <Row>
@@ -195,7 +194,7 @@ export function TimerPanel() {
                   name="close"
                   size={16}
                   label={t.focus.clearItem}
-                  color={theme.textSecondary}
+                  color={theme.text2}
                   onPress={() => setFocusDraft({ itemId: null, itemTitle: null })}
                 />
               ) : null}
@@ -227,7 +226,7 @@ export function TimerPanel() {
             <ThemedText type="smallBold">
               {fmtMinutes(todayMinutes)} {t.focus.of} {fmtMinutes(goal)}
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {todayMinutes >= goal ? `✓ ${t.focus.goalReached}` : `${t.focus.remaining} ${fmtMinutes(goal - todayMinutes)}`}
             </ThemedText>
           </Row>
@@ -239,7 +238,7 @@ export function TimerPanel() {
             .reverse()
             .map((s) => (
               <Row key={s.id} style={[styles.session, { borderColor: theme.border }]}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.sessionTime}>
+                <ThemedText type="small" themeColor="text2" style={styles.sessionTime}>
                   {fmtTime(s.startedAt)}–{s.endedAt ? fmtTime(s.endedAt) : '…'}
                 </ThemedText>
                 <View style={styles.flex}>
@@ -253,7 +252,7 @@ export function TimerPanel() {
                     name="close"
                     size={16}
                     label={t.common.delete}
-                    color={theme.textSecondary}
+                    color={theme.text2}
                     onPress={() =>
                       void confirm(t.focus.deleteSession, undefined, t.common.delete).then(async (ok) => {
                         if (ok) await deleteSession(db, s.id);
@@ -274,7 +273,7 @@ export function TimerPanel() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   card: { gap: Spacing.three },
-  clock: { fontSize: 64, lineHeight: 72, fontWeight: 300, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 64, lineHeight: 72, fontFamily: FontFamily[700], textAlign: 'center', fontVariant: ['tabular-nums'] },
   center: { justifyContent: 'center' },
   between: { justifyContent: 'space-between' },
   finished: { gap: Spacing.two, alignItems: 'center' },

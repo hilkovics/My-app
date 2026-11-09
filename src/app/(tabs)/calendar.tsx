@@ -183,7 +183,7 @@ export default function CalendarScreen() {
       ) : (
         <>
           <View style={[styles.tray, styles.padded]}>
-            <ThemedText type="smallBold" themeColor="textSecondary">
+            <ThemedText type="smallBold" themeColor="text2">
               {blockingTask ? t.calendar.pickSlot : t.calendar.unscheduled}
             </ThemedText>
             {blockingTask ? (
@@ -206,7 +206,7 @@ export default function CalendarScreen() {
                 />
               ))
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.calendar.noUnscheduled}
               </ThemedText>
             )}

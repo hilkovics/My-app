@@ -54,7 +54,7 @@ function TaskList() {
           submitBehavior="submit"
         />
         {preview ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             {preview}
           </ThemedText>
         ) : null}

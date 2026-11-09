@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS_SHORT, isSameDay, monthGrid, startOfDay } from '@/lib/dates';
@@ -32,7 +32,7 @@ export function MonthGrid({
     <View>
       <View style={styles.week}>
         {WEEKDAYS_SHORT.map((d) => (
-          <ThemedText key={d} type="small" themeColor="textSecondary" style={styles.weekday}>
+          <ThemedText key={d} type="small" themeColor="text2" style={styles.weekday}>
             {d}
           </ThemedText>
         ))}
@@ -61,9 +61,9 @@ export function MonthGrid({
                   <ThemedText
                     type="small"
                     style={{
-                      color: isSel ? theme.accentText : inMonth ? theme.text : theme.textSecondary,
+                      color: isSel ? theme.onAccent : inMonth ? theme.text : theme.text2,
                       opacity: inMonth ? 1 : 0.5,
-                      fontWeight: isToday || isSel ? 700 : 500,
+                      fontFamily: isToday || isSel ? FontFamily[800] : FontFamily[600],
                     }}>
                     {new Date(day).getDate()}
                   </ThemedText>

@@ -105,10 +105,10 @@ export default function SettingsScreen() {
     }
   };
 
-  if (!settings) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!settings) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content}>
       <Section title={t.settings.notifications}>
         <Card>
           {notificationsSupported ? (
@@ -128,9 +128,9 @@ export default function SettingsScreen() {
               ) : null}
             </Row>
           ) : (
-            <ThemedText themeColor="textSecondary">{t.settings.notSupported}</ThemedText>
+            <ThemedText themeColor="text2">{t.settings.notSupported}</ThemedText>
           )}
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             {t.settings.defaultAlert}
           </ThemedText>
           <Row>
@@ -149,11 +149,11 @@ export default function SettingsScreen() {
 
       <Section title={t.settings.calendars}>
         <Card>
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             {t.settings.calendarsHint}
           </ThemedText>
           {!deviceCalendarSupported ? (
-            <ThemedText themeColor="textSecondary">{t.settings.notSupported}</ThemedText>
+            <ThemedText themeColor="text2">{t.settings.notSupported}</ThemedText>
           ) : !calOk ? (
             <Button label={t.settings.calendarsAllow} icon="calendar" onPress={() => void allowCalendars()} />
           ) : (
@@ -163,7 +163,7 @@ export default function SettingsScreen() {
                   <View style={[styles.swatch, { backgroundColor: c.color ?? theme.accent }]} />
                   <View style={styles.flex}>
                     <ThemedText numberOfLines={1}>{c.title}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                    <ThemedText type="small" themeColor="text2" numberOfLines={1}>
                       {c.source}
                     </ThemedText>
                   </View>
@@ -173,7 +173,7 @@ export default function SettingsScreen() {
                   />
                 </Row>
               ))}
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.settings.writeCalendar}
               </ThemedText>
               <Row>
@@ -200,7 +200,7 @@ export default function SettingsScreen() {
       </Section>
 
       <Section title={t.plan.capacity}>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.plan.capacityHint}
         </ThemedText>
         <Row>
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
             <Chip key={m} label={fmtMinutes(m)} selected={settings.dayCapacityMinutes === m} onPress={() => void setSetting(db, 'dayCapacityMinutes', m)} />
           ))}
         </Row>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.plan.sleepFrom}
         </ThemedText>
         <Row>
@@ -216,7 +216,7 @@ export default function SettingsScreen() {
             <Chip key={h} label={`${h}:00`} selected={settings.sleepStartHour === h} onPress={() => void setSetting(db, 'sleepStartHour', h)} />
           ))}
         </Row>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.plan.sleepTo}
         </ThemedText>
         <Row>
@@ -242,7 +242,7 @@ export default function SettingsScreen() {
         <Button variant="secondary" label={t.settings.exportJson} onPress={() => void exportJson()} />
         <Button variant="secondary" label={t.settings.exportIcs} onPress={() => void exportIcs()} />
         <Button variant="secondary" label={t.settings.importJson} onPress={() => void importJson()} />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           Všetky dáta sú uložené len v tomto zariadení.
         </ThemedText>
       </Section>

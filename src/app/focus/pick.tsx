@@ -36,7 +36,7 @@ export default function PickFocusItemScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Input value={text} onChangeText={setText} placeholder={t.search.placeholder} autoFocus />
       <Section title={text.trim() ? t.focus.results : t.focus.suggestions}>
         {list.length ? (
@@ -47,7 +47,7 @@ export default function PickFocusItemScreen() {
               style={({ pressed }) => [styles.row, { borderColor: theme.border }, pressed && { opacity: 0.6 }]}>
               <View>
                 <ThemedText numberOfLines={1}>{i.title || t.common.untitled}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                <ThemedText type="small" themeColor="text2" numberOfLines={1}>
                   {[
                     t.types[i.type],
                     (i.startAt ?? i.dueAt) != null ? fmtDateTime((i.startAt ?? i.dueAt)!) : null,

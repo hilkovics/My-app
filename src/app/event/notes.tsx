@@ -55,7 +55,7 @@ export default function EventNotesScreen() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.background }}
+      style={{ backgroundColor: theme.bg }}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
       <Card>
@@ -66,9 +66,9 @@ export default function EventNotesScreen() {
           {fmtDateLong(start)}
           {allDay ? ` · ${t.common.allDay}` : ` · ${fmtTime(start)}–${fmtTime(end)}`}
         </ThemedText>
-        {p.location ? <ThemedText themeColor="textSecondary">📍 {p.location}</ThemedText> : null}
+        {p.location ? <ThemedText themeColor="text2">📍 {p.location}</ThemedText> : null}
         {p.source === 'device' && p.calendarTitle ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             📱 {p.calendarTitle}
           </ThemedText>
         ) : null}
@@ -159,7 +159,7 @@ function NoteEditor({ initial, eventRef }: { initial: Item | null; eventRef: Eve
         style={styles.body}
       />
       <Row style={styles.between}>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {initial || body.trim() ? t.eventNotes.autosave : t.eventNotes.hint}
         </ThemedText>
         <Button small variant="ghost" icon="note" label={t.eventNotes.more} onPress={() => void openFull()} />

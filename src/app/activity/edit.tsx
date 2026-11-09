@@ -57,7 +57,7 @@ export default function EditActivityScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useTheme();
   const activity = useLiveQuery((d) => (id ? getActivity(d, id) : Promise.resolve(null)), [id ?? null]);
-  if (id && activity === undefined) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (id && activity === undefined) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <Editor key={activity?.id ?? 'new'} activity={activity ?? null} />;
 }
 
@@ -100,7 +100,7 @@ function Editor({ activity }: { activity: Activity | null }) {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {!activity ? (
         <Field label={t.activities.templates}>
           <Row>
@@ -136,7 +136,7 @@ function Editor({ activity }: { activity: Activity | null }) {
           ))}
         </Row>
         {d.colorSlot == null && !activity ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="text2">
             Farba sa priradí automaticky.
           </ThemedText>
         ) : null}

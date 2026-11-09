@@ -31,7 +31,7 @@ export function StatusPicker({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <Pressable style={styles.backdrop} onPress={onCancel} accessibilityLabel={t.board.cancel}>
-        <Pressable style={[styles.sheet, { backgroundColor: theme.background, borderColor: theme.border }]} onPress={() => {}}>
+        <Pressable style={[styles.sheet, { backgroundColor: theme.bg, borderColor: theme.border }]} onPress={() => {}}>
           {/* Remounted per opening so the draft starts from the task's current values. */}
           {visible ? <PickerBody title={title} status={status} waitingFor={waitingFor} onSave={onSave} onCancel={onCancel} /> : null}
         </Pressable>
@@ -79,7 +79,7 @@ function PickerBody({
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'center', padding: Spacing.three },
   sheet: {
-    borderRadius: Radius.lg,
+    borderRadius: Radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     padding: Spacing.three,
     gap: Spacing.three,

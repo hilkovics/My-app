@@ -3,7 +3,7 @@ import type { ViewStyle } from 'react-native';
 import type { Colors } from '@/constants/theme';
 import type { Energy } from '@/db/types';
 import type { PlanEntry } from '@/features/plan/layout';
-import { onColor, shade, withAlpha } from '@/lib/color';
+import { onColor, shade, hexA } from '@/lib/color';
 
 type Theme = (typeof Colors)['light'] | (typeof Colors)['dark'];
 
@@ -34,11 +34,11 @@ export function entryStyle(e: Pick<PlanEntry, 'visual_intensity' | 'color' | 'ov
     borderColor = shade(hue, -0.4);
     text = onColor(hue);
   } else if (v.energy === 'rest') {
-    backgroundColor = withAlpha(theme.success, 0.18);
-    borderColor = withAlpha(theme.success, 0.7);
+    backgroundColor = hexA(theme.success, 0.18);
+    borderColor = hexA(theme.success, 0.7);
   } else {
-    backgroundColor = withAlpha(hue, v.saturation * 0.5);
-    borderColor = withAlpha(hue, 0.55);
+    backgroundColor = hexA(hue, v.saturation * 0.5);
+    borderColor = hexA(hue, 0.55);
   }
   return {
     box: {
@@ -49,6 +49,6 @@ export function entryStyle(e: Pick<PlanEntry, 'visual_intensity' | 'color' | 'ov
       opacity: v.opacity,
     },
     text,
-    muted: v.energy === 'deep' ? text : theme.textSecondary,
+    muted: v.energy === 'deep' ? text : theme.text2,
   };
 }

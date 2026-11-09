@@ -21,7 +21,7 @@ export default function LinkScreen() {
   const results = (useLiveQuery((d) => searchItems(d, text, 50), [text]) ?? []).filter((i) => i.id !== from);
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Input value={text} onChangeText={setText} placeholder={t.search.placeholder} autoFocus />
       {text.trim() && !results.length ? <Empty text={t.search.empty} /> : null}
       {results.map((i) => (
@@ -31,7 +31,7 @@ export default function LinkScreen() {
           style={({ pressed }) => [styles.row, { borderColor: theme.border }, pressed && { opacity: 0.6 }]}>
           <View style={styles.flex}>
             <ThemedText numberOfLines={1}>{i.title || t.common.untitled}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.types[i.type]}
               {i.startAt ?? i.dueAt ? ` · ${fmtDateTime((i.startAt ?? i.dueAt)!)}` : ''}
             </ThemedText>

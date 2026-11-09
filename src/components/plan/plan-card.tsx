@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import type { PlanEntry } from '@/features/plan/layout';
 import { fmtMinutes } from '@/features/focus/stats';
 import { useTheme } from '@/hooks/use-theme';
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   padded: { paddingHorizontal: Spacing.two, paddingVertical: 2 },
   compact: { paddingHorizontal: 6, paddingVertical: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  title: { flex: 1, fontWeight: 600 },
+  title: { flex: 1, fontFamily: FontFamily[700] },
   compactText: { fontSize: 11, lineHeight: 14 },
   done: { textDecorationLine: 'line-through' },
 });

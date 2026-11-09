@@ -200,17 +200,21 @@ describe('snapToWeekday', () => {
 
 describe('colour helpers', () => {
   it('adds alpha and shades colours', async () => {
-    const { shade, withAlpha, onColor } = await import('../src/lib/color');
-    assert.equal(withAlpha('#2a78d6', 0.5), '#2a78d680');
-    assert.equal(withAlpha('#2a78d6ff', 0), '#2a78d600');
+    const { shade, hexA, onColor } = await import('../src/lib/color');
+    assert.equal(hexA('#2a78d6', 0.5), 'rgba(42,120,214,0.5)');
+    assert.equal(hexA('#2a78d6ff', 0), 'rgba(42,120,214,0)');
+    assert.equal(hexA('rgba(1,2,3,1)', 0.5), 'rgba(1,2,3,1)', 'non-hex colours pass through');
+    assert.equal(hexA('#000000', 2), 'rgba(0,0,0,1)', 'alpha is clamped');
     assert.equal(shade('#ffffff', -0.5), '#808080');
     assert.equal(shade('#000000', 0.5), '#808080');
     assert.equal(shade('#336699', 1), '#ffffff');
     assert.equal(shade('nope', 0.3), 'nope');
-    assert.equal(onColor('#eda100'), '#111214', 'yellow needs dark text');
+    assert.equal(onColor('#eda100'), '#15142B', 'yellow needs dark text');
     assert.equal(onColor('#104281'), '#ffffff');
-    assert.equal(onColor('#2F6FEB'), '#ffffff', 'the app accent takes white text');
-    assert.equal(onColor('#1baf7a'), '#111214', 'a light green needs dark text');
+    assert.equal(onColor('#2F6FEB'), '#ffffff', 'luminance 0.18 or less takes white text');
+    assert.equal(onColor('#4F46E5'), '#ffffff', 'the light-theme accent takes white text');
+    assert.equal(onColor('#8B83FF'), '#15142B', 'the dark-theme accent takes dark ink');
+    assert.equal(onColor('#1baf7a'), '#15142B', 'a light green needs dark text');
   });
 });
 

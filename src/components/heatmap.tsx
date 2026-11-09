@@ -34,17 +34,17 @@ export function Heatmap({
   const today = startOfDay(useNow());
   const [selected, setSelected] = useState<number | null>(null);
   const scrollRef = useRef<ScrollViewInstance>(null);
-  const colorFor = (lvl: number) => (lvl === 0 ? theme.backgroundSelected : heat[lvl - 1]);
+  const colorFor = (lvl: number) => (lvl === 0 ? theme.surface2 : heat[lvl - 1]);
 
   return (
     <View style={styles.wrap}>
-      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+      <ThemedText type="small" themeColor="text2" numberOfLines={1}>
         {selected != null ? `${fmtDateShort(selected)}: ${describe(selected)}` : ' '}
       </ThemedText>
       <View style={styles.row}>
         <View style={styles.dayLabels}>
           {DAY_LABELS.map((l, i) => (
-            <ThemedText key={i} type="small" themeColor="textSecondary" style={styles.dayLabel}>
+            <ThemedText key={i} type="small" themeColor="text2" style={styles.dayLabel}>
               {l}
             </ThemedText>
           ))}
@@ -63,7 +63,7 @@ export function Heatmap({
                   <ThemedText
                     key={w[0]}
                     type="small"
-                    themeColor="textSecondary"
+                    themeColor="text2"
                     style={[styles.monthLabel, { left: i * (CELL + GAP) }]}>
                     {MONTHS[m].slice(0, 3)}
                   </ThemedText>
@@ -100,13 +100,13 @@ export function Heatmap({
         </ScrollView>
       </View>
       <View style={styles.legend}>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.legendText}>
+        <ThemedText type="small" themeColor="text2" style={styles.legendText}>
           menej
         </ThemedText>
         {[0, 1, 2, 3, 4].map((l) => (
           <View key={l} style={[styles.cell, styles.legendCell, { backgroundColor: colorFor(l) }]} />
         ))}
-        <ThemedText type="small" themeColor="textSecondary" style={styles.legendText}>
+        <ThemedText type="small" themeColor="text2" style={styles.legendText}>
           viac
         </ThemedText>
       </View>

@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 import { layoutDay, occurrencesOnDay, type Occurrence } from '@/features/calendar/agenda';
-import { shade, withAlpha } from '@/lib/color';
+import { shade, hexA } from '@/lib/color';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS_SHORT, addDays, fmtTime, minutesOfDay, startOfDay, weekdayIndex, withTime } from '@/lib/dates';
@@ -54,11 +54,11 @@ export function TimeGrid({
           <View style={{ width: LABEL_WIDTH }} />
           {days.map((d) => (
             <View key={d} style={styles.dayHeader}>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {WEEKDAYS_SHORT[weekdayIndex(d)]}
               </ThemedText>
               <View style={[styles.dayNum, d === today && { backgroundColor: theme.accent }]}>
-                <ThemedText type="smallBold" style={d === today ? { color: theme.accentText } : undefined}>
+                <ThemedText type="smallBold" style={d === today ? { color: theme.onAccent } : undefined}>
                   {new Date(d).getDate()}
                 </ThemedText>
               </View>
@@ -92,7 +92,7 @@ export function TimeGrid({
           <View style={{ width: LABEL_WIDTH }}>
             {Array.from({ length: 24 }, (_, h) => (
               <View key={h} style={{ height: HOUR_HEIGHT }}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.hourLabel}>
+                <ThemedText type="small" themeColor="text2" style={styles.hourLabel}>
                   {h ? `${h}:00` : ''}
                 </ThemedText>
               </View>
@@ -111,8 +111,8 @@ export function TimeGrid({
                     style={({ pressed }) => [
                       styles.slot,
                       i % 2 === 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.border },
-                      highlightSlots && { backgroundColor: theme.backgroundElement },
-                      pressed && { backgroundColor: theme.backgroundSelected },
+                      highlightSlots && { backgroundColor: theme.surface },
+                      pressed && { backgroundColor: theme.surface2 },
                     ]}
                   />
                 ))}
@@ -139,7 +139,7 @@ export function TimeGrid({
                           height,
                           left: `${(column / columns) * 100}%`,
                           width: `${100 / columns}%`,
-                          backgroundColor: restBreak ? withAlpha(theme.success, 0.22) : isTask ? theme.background : color,
+                          backgroundColor: restBreak ? hexA(theme.success, 0.22) : isTask ? theme.bg : color,
                           borderColor: restBreak ? theme.success : deepWork ? shade(color, -0.4) : color,
                           borderWidth: deepWork ? 3 : 1.5,
                           borderStyle: occ.kind === 'due' || restBreak ? 'dashed' : 'solid',
@@ -156,7 +156,7 @@ export function TimeGrid({
                         {occ.title}
                       </ThemedText>
                       {height > 40 && occ.kind !== 'due' ? (
-                        <ThemedText type="small" style={[styles.eventTime, isTask && { color: theme.textSecondary }]}>
+                        <ThemedText type="small" style={[styles.eventTime, isTask && { color: theme.text2 }]}>
                           {fmtTime(occ.start)}–{fmtTime(occ.end)}
                         </ThemedText>
                       ) : null}
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginLeft: 1,
   },
-  eventText: { color: '#fff', fontWeight: 600, fontSize: 12, lineHeight: 15 },
+  eventText: { color: '#fff', fontFamily: FontFamily[700], fontSize: 12, lineHeight: 15 },
   eventTime: { color: '#ffffffcc', fontSize: 11, lineHeight: 14 },
   nowLine: { position: 'absolute', left: 0, right: 0, height: 2 },
   spacer: { height: Spacing.two },

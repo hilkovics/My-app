@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import { listSessions } from '@/features/focus/repository';
 import {
@@ -117,7 +117,7 @@ export function StatsPanel() {
           formatValue={fmtMinutes}
           initialSelected={selectedIndex >= 0 ? selectedIndex : undefined}
         />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {t.focus.daysWithGoal}: {sum.daysWithGoal}
         </ThemedText>
       </Card>
@@ -132,7 +132,7 @@ export function StatsPanel() {
 
       <Card>
         <ThemedText type="smallBold">{t.focus.byHour}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {bestWin ? `${t.focus.bestWindow} ${bestWin[0]}:00 – ${bestWin[1]}:00.` : t.focus.noData}
         </ThemedText>
         <ColumnChart
@@ -153,13 +153,13 @@ export function StatsPanel() {
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   const theme = useTheme();
   return (
-    <View style={[styles.tile, { backgroundColor: theme.backgroundElement }]}>
-      <ThemedText type="small" themeColor="textSecondary">
+    <View style={[styles.tile, { backgroundColor: theme.surface }]}>
+      <ThemedText type="small" themeColor="text2">
         {label}
       </ThemedText>
       <ThemedText style={styles.tileValue}>{value}</ThemedText>
       {sub ? (
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {sub}
         </ThemedText>
       ) : null}
@@ -171,6 +171,6 @@ const styles = StyleSheet.create({
   nav: { justifyContent: 'space-between', flexWrap: 'nowrap' },
   navTitle: { flex: 1, textAlign: 'center' },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  tile: { flexGrow: 1, flexBasis: '45%', borderRadius: Radius.lg, padding: Spacing.three, gap: 2 },
-  tileValue: { fontSize: 22, lineHeight: 28, fontWeight: 600 },
+  tile: { flexGrow: 1, flexBasis: '45%', borderRadius: Radius.card, padding: Spacing.three, gap: 2 },
+  tileValue: { fontSize: 22, lineHeight: 28, fontFamily: FontFamily[800] },
 });

@@ -18,6 +18,7 @@ import {
   dailySeries,
   fmtClock,
   fmtMinutes,
+  hm,
   goalStreak,
   minutesByDay,
   minutesByHour,
@@ -173,9 +174,13 @@ describe('focus stats', () => {
   });
 
   it('formats durations', () => {
-    assert.equal(fmtMinutes(45), '45 min');
-    assert.equal(fmtMinutes(125), '2 h 05 min');
-    assert.equal(fmtMinutes(120), '2 h');
+    assert.equal(fmtMinutes(45), '45\u00a0min');
+    assert.equal(fmtMinutes(125), '2\u00a0h\u00a05\u00a0min');
+    assert.equal(fmtMinutes(75), '1\u00a0h\u00a015\u00a0min');
+    assert.equal(fmtMinutes(120), '2\u00a0h');
+    assert.equal(fmtMinutes(0), '0\u00a0min');
+    assert.equal(hm(405), '6:45');
+    assert.equal(hm(0), '0:00');
     assert.equal(fmtClock(25 * MIN), '25:00');
     assert.equal(fmtClock(3600_000 + 5 * MIN + 9_000), '1:05:09');
   });

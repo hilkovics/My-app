@@ -1,7 +1,7 @@
 import { Tabs, TabList, TabTrigger, TabSlot, type TabTriggerSlotProps, type TabListProps } from 'expo-router/ui';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { FontFamily, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 
@@ -35,11 +35,11 @@ export default function AppTabs() {
 
 function TabButton({ children, isFocused, icon, ref: _ref, ...props }: TabTriggerSlotProps & { icon: IconName }) {
   const theme = useTheme();
-  const color = isFocused ? theme.accent : theme.textSecondary;
+  const color = isFocused ? theme.mark : theme.text2;
   return (
     <Pressable {...props} style={({ pressed }) => [styles.tab, pressed && { opacity: 0.7 }]}>
-      <Icon name={icon} size={22} color={color} />
-      <ThemedText type="small" style={{ color, fontSize: 11, lineHeight: 14 }}>
+      <Icon name={icon} size={24} color={color} filled={isFocused} />
+      <ThemedText type="tabLabel" style={{ color, fontFamily: isFocused ? FontFamily[800] : FontFamily[600] }}>
         {children}
       </ThemedText>
     </Pressable>
@@ -49,7 +49,7 @@ function TabButton({ children, isFocused, icon, ref: _ref, ...props }: TabTrigge
 function BottomBar(props: TabListProps) {
   const theme = useTheme();
   return (
-    <View {...props} style={[styles.bar, { backgroundColor: theme.background, borderColor: theme.border }]}>
+    <View {...props} style={[styles.bar, { backgroundColor: theme.tabBg, borderColor: theme.border }]}>
       <View style={styles.inner}>{props.children}</View>
     </View>
   );
@@ -61,8 +61,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: Spacing.one,
+    borderTopWidth: 1,
+    paddingTop: Spacing.one,
+    paddingBottom: Spacing.two,
   },
   inner: { flexDirection: 'row', width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   tab: { flex: 1, alignItems: 'center', gap: 2, paddingVertical: Spacing.one },

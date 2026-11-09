@@ -33,14 +33,14 @@ export function EntrySheet({ entry, onClose }: { entry: PlanEntry | null; onClos
   return (
     <Modal visible={entry != null} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t.board.cancel}>
-        <Pressable style={[styles.sheet, { backgroundColor: theme.background, borderColor: theme.border }]} onPress={() => {}}>
+        <Pressable style={[styles.sheet, { backgroundColor: theme.bg, borderColor: theme.border }]} onPress={() => {}}>
           {entry ? (
             <>
               <ThemedText type="smallBold" numberOfLines={2}>
                 {ENERGY_ICON[entry.energy] ? `${ENERGY_ICON[entry.energy]} ` : ''}
                 {entry.title || t.common.untitled}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {entry.start != null ? `${fmtTime(entry.start)}–${fmtTime(entry.start + entry.durationMin * 60_000)} · ` : ''}
                 {entry.guessed ? '~' : ''}
                 {fmtMinutes(entry.durationMin)}
@@ -61,7 +61,7 @@ export function EntrySheet({ entry, onClose }: { entry: PlanEntry | null; onClos
                   ) : null}
                 </>
               ) : !local ? (
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" themeColor="text2">
                   Udalosť z kalendára v telefóne sa tu len zobrazuje.
                 </ThemedText>
               ) : null}
@@ -91,5 +91,5 @@ export function EntrySheet({ entry, onClose }: { entry: PlanEntry | null; onClos
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'flex-end', padding: Spacing.three },
-  sheet: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.three, width: '100%', maxWidth: 520, alignSelf: 'center' },
+  sheet: { borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.three, width: '100%', maxWidth: 520, alignSelf: 'center' },
 });

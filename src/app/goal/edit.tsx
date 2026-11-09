@@ -25,7 +25,7 @@ export default function EditGoalScreen() {
     async (d) => ({ goal: id ? await getGoal(d, id) : null, activities: await listActivities(d), all: await listGoals(d, true) }),
     [id ?? null],
   );
-  if (!data) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!data) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <Editor key={data.goal?.id ?? 'new'} goal={data.goal} activities={data.activities} />;
 }
 
@@ -70,7 +70,7 @@ function Editor({ goal, activities }: { goal: Goal | null; activities: Awaited<R
   };
 
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Field label={t.goals.name}>
         <Input value={name} onChangeText={setName} placeholder="napr. Zahrať koncert" big autoFocus={!goal} />
       </Field>
@@ -125,7 +125,7 @@ function Editor({ goal, activities }: { goal: Goal | null; activities: Awaited<R
             </Field>
           </>
         ) : (
-          <ThemedText themeColor="textSecondary">{t.goals.pickActivity}</ThemedText>
+          <ThemedText themeColor="text2">{t.goals.pickActivity}</ThemedText>
         )
       ) : null}
 

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import type { Item, TaskStatus } from '@/db/types';
 import { listBoardTasks, setTaskStatus } from '@/features/items/repository';
@@ -98,7 +98,7 @@ function Column({
   };
 
   return (
-    <View style={[styles.column, { backgroundColor: theme.backgroundElement }]}>
+    <View style={[styles.column, { backgroundColor: theme.surface }]}>
       <View style={styles.header}>
         <ThemedText type="smallBold" style={styles.flex}>
           {t.status[status]} · {items.length}
@@ -123,7 +123,7 @@ function Column({
           <Card key={item.id} item={item} status={status} now={now} showProject={showProject} onMove={onMove} onPick={onPick} />
         ))
       ) : (
-        <ThemedText type="small" themeColor="textSecondary" style={styles.empty}>
+        <ThemedText type="small" themeColor="text2" style={styles.empty}>
           {t.board.emptyColumn}
         </ThemedText>
       )}
@@ -161,7 +161,7 @@ function Card({
     <View
       role="group"
       accessibilityLabel={`${item.title || t.common.untitled}`}
-      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
+      style={[styles.card, { backgroundColor: theme.bg, borderColor: theme.border }]}>
       {/* The tappable part is separate from the arrows (buttons must not nest). */}
       <Pressable
         accessibilityRole="button"
@@ -169,12 +169,12 @@ function Card({
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         onLongPress={() => onPick(item)}
         style={({ pressed }) => [styles.cardBody, pressed && { opacity: 0.7 }]}>
-        <ThemedText numberOfLines={3} style={status === 'done' ? { textDecorationLine: 'line-through', color: theme.textSecondary } : undefined}>
-          {PRIORITY_MARK[item.priority] ? <ThemedText style={{ color: theme.danger, fontWeight: 700 }}>{PRIORITY_MARK[item.priority]} </ThemedText> : null}
+        <ThemedText numberOfLines={3} style={status === 'done' ? { textDecorationLine: 'line-through', color: theme.text2 } : undefined}>
+          {PRIORITY_MARK[item.priority] ? <ThemedText style={{ color: theme.danger, fontFamily: FontFamily[800] }}>{PRIORITY_MARK[item.priority]} </ThemedText> : null}
           {item.title || t.common.untitled}
         </ThemedText>
         {meta.length ? (
-          <ThemedText type="small" numberOfLines={2} style={{ color: overdue ? theme.danger : theme.textSecondary }}>
+          <ThemedText type="small" numberOfLines={2} style={{ color: overdue ? theme.danger : theme.text2 }}>
             {meta.join(' · ')}
           </ThemedText>
         ) : null}
@@ -190,10 +190,10 @@ function Card({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   columns: { gap: Spacing.two, paddingRight: Spacing.three, alignItems: 'flex-start' },
-  column: { width: 272, borderRadius: Radius.lg, padding: Spacing.two, gap: Spacing.two },
+  column: { width: 272, borderRadius: Radius.card, padding: Spacing.two, gap: Spacing.two },
   header: { flexDirection: 'row', alignItems: 'center', paddingLeft: Spacing.one },
   empty: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.one },
-  card: { borderRadius: Radius.md, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.two + 2, gap: 4 },
+  card: { borderRadius: Radius.buttonSquare, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.two + 2, gap: 4 },
   cardBody: { gap: 4 },
   arrows: { flexDirection: 'row', justifyContent: 'space-between' },
 });

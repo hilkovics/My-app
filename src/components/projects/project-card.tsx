@@ -10,9 +10,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { plural } from '@/lib/dates';
 
-import { Meter } from '../meter';
 import { ThemedText } from '../themed-text';
-import { Card } from '../ui';
+import { Card, Meter } from '../ui';
 
 /** Project summary: progress of its tasks, deadline countdown, goal. */
 export function ProjectCard({ project, items, goal, now }: { project: Project; items: Item[]; goal?: Goal | null; now: number }) {
@@ -41,7 +40,7 @@ export function ProjectCard({ project, items, goal, now }: { project: Project; i
               <ThemedText
                 type="small"
                 numberOfLines={1}
-                style={{ color: project.deadline != null && project.deadline < now && !finished && prog.pct < 100 ? theme.danger : theme.textSecondary }}>
+                style={{ color: project.deadline != null && project.deadline < now && !finished && prog.pct < 100 ? theme.danger : theme.text2 }}>
                 {sub.join(' · ')}
               </ThemedText>
             ) : null}
@@ -49,7 +48,7 @@ export function ProjectCard({ project, items, goal, now }: { project: Project; i
           <ThemedText type="smallBold">{prog.total ? `${prog.pct} %` : '–'}</ThemedText>
         </View>
         <Meter value={prog.pct / 100} label={`${project.name} ${prog.pct} %`} />
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="small" themeColor="text2">
           {prog.total ? `${prog.done}/${prog.total} ${t.projects.tasks}` : t.projects.emptyProgress}
           {prog.overdue ? ` · ${plural(prog.overdue, 'úloha', 'úlohy', 'úloh')} ${t.projects.overdue}` : ''}
         </ThemedText>

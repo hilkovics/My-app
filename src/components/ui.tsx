@@ -1,4 +1,5 @@
-import { type ReactNode } from 'react';
+import { router } from 'expo-router';
+import { useState, type ReactNode } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -9,15 +10,22 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { BottomTabInset, FontFamily, Layout, Motion, Opacity, Radius, Shadow, Spacing, Type } from '@/constants/theme';
+import { useStatusBarZone } from '@/hooks/use-status-bar';
 import { useTheme } from '@/hooks/use-theme';
+import { hexA, onColor } from '@/lib/color';
 
 import { Icon, type IconName } from './icon';
 import { ThemedText } from './themed-text';
 
-/** Tab screen shell: safe area, own header, scrollable content, optional floating button. */
+// ---------------------------------------------------------------- Screen
+
+/**
+ * Tab-root screen shell: safe area, 32/40 title with two round header buttons (or a full-bleed `hero`
+ * zone instead of the title row), scrollable content with 16 px side padding, optional FAB.
+ */
 export function Screen({
   title,
   subtitle,
@@ -26,57 +34,91 @@ export function Screen({
   scroll = true,
   fab,
   tabBarInset = true,
+  hero,
+  gap = 18,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   actions?: ReactNode;
   children: ReactNode;
   scroll?: boolean;
   fab?: ReactNode;
   tabBarInset?: boolean;
+  /** Full-bleed zone rendered above the content (it must handle the top safe area itself). */
+  hero?: ReactNode;
+  gap?: number;
 }) {
   const theme = useTheme();
-  const bottom = tabBarInset ? BottomTabInset + Spacing.five : Spacing.five;
-  return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.flex, { backgroundColor: theme.background }]}>
-      <View style={styles.center}>
-        <View style={styles.header}>
-          <View style={styles.flex}>
-            <ThemedText type="subtitle" numberOfLines={1}>
-              {title}
+  const insets = useSafeAreaInsets();
+  useStatusBarZone(hero ? 'accent' : 'bg');
+  const bottom = (tabBarInset ? BottomTabInset : 0) + Spacing.five + 64;
+
+  const titleRow =
+    !hero && title ? (
+      <View style={[styles.titleRow, { paddingTop: insets.top + Spacing.two }]}>
+        <View style={styles.flex}>
+          <ThemedText type="screenTitle" numberOfLines={1}>
+            {title}
+          </ThemedText>
+          {subtitle ? (
+            <ThemedText type="meta" themeColor="text2">
+              {subtitle}
             </ThemedText>
-            {subtitle ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {subtitle}
-              </ThemedText>
-            ) : null}
-          </View>
-          <View style={styles.row}>{actions}</View>
+          ) : null}
         </View>
+        <View style={styles.row}>{actions}</View>
+      </View>
+    ) : null;
+
+  return (
+    <View style={[styles.flex, { backgroundColor: theme.bg }]}>
+      <View style={styles.center}>
         {scroll ? (
-          <ScrollView
-            style={styles.flex}
-            contentContainerStyle={[styles.content, { paddingBottom: bottom + 56 }]}
-            keyboardShouldPersistTaps="handled">
-            {children}
+          <ScrollView style={styles.flex} contentContainerStyle={{ paddingBottom: bottom }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {hero}
+            {titleRow}
+            <View style={{ paddingHorizontal: Layout.screenPaddingX, gap, paddingTop: hero ? Layout.sectionGap : Spacing.two }}>{children}</View>
           </ScrollView>
         ) : (
-          <View style={[styles.flex, { paddingBottom: tabBarInset ? BottomTabInset : 0 }]}>{children}</View>
+          <>
+            {hero}
+            {titleRow}
+            <View style={[styles.flex, { paddingBottom: tabBarInset ? BottomTabInset : 0 }]}>{children}</View>
+          </>
         )}
       </View>
-      {fab ? <View style={[styles.fab, { bottom: bottom - Spacing.two }]}>{fab}</View> : null}
-    </SafeAreaView>
+      {fab ? <View style={[styles.fab, { bottom: (tabBarInset ? BottomTabInset : 0) + Layout.fabOffset.bottom }]}>{fab}</View> : null}
+    </View>
   );
 }
 
-export function Section({ title, right, children }: { title?: string; right?: ReactNode; children: ReactNode }) {
+/** The search and settings buttons of a tab header. */
+export function HeaderButtons({ search = true, onAccent = false }: { search?: boolean; onAccent?: boolean }) {
+  const theme = useTheme();
+  const variant = onAccent ? 'ghost' : 'surface';
+  const color = onAccent ? theme.onAccent : undefined;
   return (
-    <View style={styles.section}>
-      {title ? (
+    <>
+      {search ? <IconButton name="search" label="Hľadať" variant={variant} color={color} onPress={() => router.push('/search')} /> : null}
+      <IconButton name="settings" label="Nastavenia" variant={variant} color={color} onPress={() => router.push('/settings')} />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------- Layout
+
+export function Section({ title, right, children, gap = 10 }: { title?: string; right?: ReactNode; children: ReactNode; gap?: number }) {
+  return (
+    <View style={{ gap }}>
+      {title || right ? (
         <View style={styles.sectionHeader}>
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
-            {title}
-          </ThemedText>
+          {title ? (
+            <ThemedText type="section" style={styles.flex} numberOfLines={1} accessibilityRole="header">
+              {title}
+            </ThemedText>
+          ) : (
+            <View style={styles.flex} />
+          )}
           {right}
         </View>
       ) : null}
@@ -85,79 +127,170 @@ export function Section({ title, right, children }: { title?: string; right?: Re
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+/** Text link in the accent colour (e.g. "Kalendár" next to a section title). 44 px tall hit area. */
+export function LinkButton({ label, onPress }: { label: string; onPress: () => void }) {
   const theme = useTheme();
-  return <View style={[styles.card, { backgroundColor: theme.backgroundElement }, style]}>{children}</View>;
-}
-
-export function Button({
-  label,
-  onPress,
-  variant = 'primary',
-  icon,
-  disabled,
-  small,
-}: {
-  label: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  icon?: IconName;
-  disabled?: boolean;
-  small?: boolean;
-}) {
-  const theme = useTheme();
-  const bg =
-    variant === 'primary'
-      ? theme.accent
-      : variant === 'danger'
-        ? theme.danger
-        : variant === 'secondary'
-          ? theme.backgroundSelected
-          : 'transparent';
-  const fg = variant === 'primary' || variant === 'danger' ? theme.accentText : variant === 'ghost' ? theme.accent : theme.text;
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.button,
-        small && styles.buttonSmall,
-        { backgroundColor: bg, opacity: disabled ? 0.4 : pressed ? 0.75 : 1 },
-      ]}>
-      {icon ? <Icon name={icon} size={small ? 14 : 16} color={fg} /> : null}
-      <ThemedText type={small ? 'small' : 'default'} style={{ color: fg, fontWeight: 600 }}>
+    <Pressable accessibilityRole="link" onPress={onPress} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}>
+      <ThemedText type="button" style={{ color: theme.mark }}>
         {label}
       </ThemedText>
     </Pressable>
   );
 }
 
+export type CardTone = 'default' | 'warning' | 'ink' | 'muted' | 'success' | 'danger';
+
+/** Surface card: radius 20, padding 16, 1 px border. Tones: warning (soft fill, no border), ink (inverted), muted (50 %), success/danger (outlined). */
+export function Card({ children, style, tone = 'default' }: { children: ReactNode; style?: StyleProp<ViewStyle>; tone?: CardTone }) {
+  const theme = useTheme();
+  const toneStyle: ViewStyle =
+    tone === 'warning'
+      ? { backgroundColor: theme.warningSoft, borderWidth: 0 }
+      : tone === 'ink'
+        ? { backgroundColor: theme.ink, borderWidth: 0 }
+        : tone === 'muted'
+          ? { opacity: Opacity.archived }
+          : tone === 'success'
+            ? { backgroundColor: theme.successSoft, borderColor: theme.success, borderWidth: 2 }
+            : tone === 'danger'
+              ? { borderColor: theme.danger, borderWidth: 2 }
+              : {};
+  return <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, toneStyle, style]}>{children}</View>;
+}
+
+export function Row({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.row, style]}>{children}</View>;
+}
+
+export function Empty({ text }: { text: string }) {
+  return (
+    <ThemedText type="bodySmall" themeColor="text2" style={styles.empty}>
+      {text}
+    </ThemedText>
+  );
+}
+
+// ---------------------------------------------------------------- Buttons
+
+export type ButtonVariant = 'primary' | 'ink' | 'secondary' | 'outline' | 'danger' | 'dangerSoft' | 'ghost' | 'onAccent';
+
+/**
+ * Pill button. primary = accent, ink = inverted, secondary = surface2, outline = 2 px border,
+ * danger / dangerSoft, ghost = text button in the accent colour, onAccent = for hero zones.
+ * Sizes: default 52, small 36, hero 64. Pressed scales to 0.97; focus shows a 3 + 3 px ring.
+ */
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  icon,
+  iconFilled = true,
+  disabled,
+  small,
+  hero,
+  style,
+  accessibilityLabel,
+}: {
+  label: string;
+  onPress: () => void;
+  variant?: ButtonVariant;
+  icon?: IconName;
+  iconFilled?: boolean;
+  disabled?: boolean;
+  small?: boolean;
+  hero?: boolean;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+}) {
+  const theme = useTheme();
+  const [focused, setFocused] = useState(false);
+  const base: Record<ButtonVariant, { bg: string; pressed: string; fg: string; border?: string }> = {
+    primary: { bg: theme.accent, pressed: theme.accentPressed, fg: theme.onAccent },
+    ink: { bg: theme.ink, pressed: theme.ink, fg: theme.onInk },
+    secondary: { bg: theme.surface2, pressed: theme.surface2, fg: theme.text },
+    outline: { bg: 'transparent', pressed: 'transparent', fg: theme.text, border: theme.border },
+    danger: { bg: theme.danger, pressed: theme.danger, fg: '#FFFFFF' },
+    dangerSoft: { bg: theme.dangerSoft, pressed: theme.dangerSoft, fg: theme.dangerText },
+    ghost: { bg: 'transparent', pressed: 'transparent', fg: theme.mark },
+    onAccent: { bg: theme.onAccent, pressed: theme.onAccent, fg: theme.accent },
+  };
+  const v = base[variant];
+  const fg = disabled && variant === 'primary' ? theme.text2 : v.fg;
+  const height = hero ? 64 : small ? 36 : 52;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: !!disabled }}
+      onPress={onPress}
+      disabled={disabled}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hitSlop={small ? { top: 4, bottom: 4 } : undefined}
+      style={({ pressed }) => [
+        styles.button,
+        {
+          height,
+          borderRadius: height / 2,
+          paddingHorizontal: small ? 14 : hero ? 28 : 22,
+          backgroundColor: disabled && variant === 'primary' ? theme.surface2 : pressed ? v.pressed : v.bg,
+          borderColor: v.border,
+          borderWidth: v.border ? 2 : 0,
+          opacity: disabled ? Opacity.disabled : 1,
+          transform: [{ scale: pressed && !disabled ? Motion.pressScale : 1 }],
+        },
+        focused && { boxShadow: `0 0 0 3px ${theme.bg}, 0 0 0 6px ${theme.text}` },
+        style,
+      ]}>
+      {icon ? <Icon name={icon} size={small ? 18 : hero ? 30 : 22} color={fg} filled={iconFilled} /> : null}
+      <ThemedText type={small ? 'meta' : 'button'} style={[{ color: fg }, small && { fontFamily: FontFamily[800] }]} numberOfLines={1}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+/** 44 × 44 round icon button. ghost = bare, surface = card fill + border, surface2 = soft fill. */
 export function IconButton({
   name,
   onPress,
   label,
   color,
   size = 22,
+  variant = 'ghost',
+  disabled,
+  filled,
 }: {
   name: IconName;
   onPress: () => void;
   label: string;
   color?: string;
   size?: number;
+  variant?: 'ghost' | 'surface' | 'surface2';
+  disabled?: boolean;
+  filled?: boolean;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
-      hitSlop={8}
-      style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.6 }]}>
-      <Icon name={name} size={size} color={color} />
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.iconButton,
+        variant === 'surface' && { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 },
+        variant === 'surface2' && { backgroundColor: theme.surface2 },
+        { opacity: disabled ? Opacity.iconDisabled : 1, transform: [{ scale: pressed && !disabled ? Motion.pressScaleRound : 1 }] },
+      ]}>
+      <Icon name={name} size={size} color={color ?? theme.text} filled={filled} />
     </Pressable>
   );
 }
 
+/** Rounded-square floating action button (60 × 60, ink). */
 export function Fab({ onPress, label }: { onPress: () => void; label: string }) {
   const theme = useTheme();
   return (
@@ -165,66 +298,127 @@ export function Fab({ onPress, label }: { onPress: () => void; label: string }) 
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [styles.fabButton, { backgroundColor: theme.accent, opacity: pressed ? 0.8 : 1 }]}>
-      <Icon name="add" size={28} color={theme.accentText} />
+      style={({ pressed }) => [styles.fabButton, Shadow.fab, { backgroundColor: theme.ink, transform: [{ scale: pressed ? Motion.pressScaleRound : 1 }] }]}>
+      <Icon name="add" size={32} color={theme.onInk} />
     </Pressable>
   );
 }
 
+// ---------------------------------------------------------------- Chips and switches
+
+/**
+ * Pill chip, 38 tall (44 with the hit slop). Selected = ink fill. `soft` = tinted (projects),
+ * `dashed` = dashed outline (unscheduled tasks), `count` follows the label at 70 %.
+ * With `color` a selected chip takes that colour instead of ink.
+ */
 export function Chip({
   label,
   selected,
   onPress,
   color,
+  soft,
+  dashed,
+  count,
 }: {
   label: string;
   selected?: boolean;
   onPress?: () => void;
   color?: string | null;
+  soft?: boolean;
+  dashed?: boolean;
+  count?: number | string;
 }) {
   const theme = useTheme();
+  const fill = selected ? (color ?? theme.ink) : soft ? theme.markSoft : theme.surface;
+  const fg = selected ? (color ? onColor(color) : theme.onInk) : theme.text;
   return (
     <Pressable
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityState={{ selected }}
-      style={[
+      accessibilityLabel={count != null ? `${label} ${count}` : label}
+      accessibilityState={{ selected: !!selected }}
+      hitSlop={{ top: 3, bottom: 3 }}
+      style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: selected ? (color ?? theme.accent) : theme.backgroundElement,
-          borderColor: color ?? theme.border,
+          backgroundColor: fill,
+          borderColor: dashed ? theme.text2 : selected || soft ? 'transparent' : theme.border,
+          borderWidth: dashed ? 1.5 : selected || soft ? 0 : 1,
+          borderStyle: dashed ? 'dashed' : 'solid',
+          transform: [{ scale: pressed ? Motion.pressScale : 1 }],
         },
       ]}>
-      <ThemedText type="small" style={{ color: selected ? theme.accentText : theme.text }}>
+      <ThemedText type="meta" style={[{ color: fg, fontFamily: FontFamily[800] }]} numberOfLines={1}>
         {label}
+        {count != null ? <ThemedText type="meta" style={{ color: fg, opacity: 0.7, fontFamily: FontFamily[800] }}>{`  ${count}`}</ThemedText> : null}
       </ThemedText>
     </Pressable>
   );
 }
 
+/** 38 px colour swatch; the selected one gets a ring and a check. */
+export function Swatch({ color, selected, onPress, label }: { color: string; selected?: boolean; onPress: () => void; label: string }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!selected }}
+      onPress={onPress}
+      hitSlop={3}
+      style={[styles.swatch, { backgroundColor: color }, selected && { boxShadow: `0 0 0 2px ${theme.bg}, 0 0 0 4px ${theme.text}` }]}>
+      {selected ? <Icon name="check" size={20} color={onColor(color)} /> : null}
+    </Pressable>
+  );
+}
+
+/**
+ * Segmented control. `primary` (default): ink pill, 40 tall. `filter`: nested, raised active item, 38 tall.
+ * `hero`: for the accent hero zone (translucent track, onAccent active item).
+ */
 export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  variant = 'primary',
+  hero,
 }: {
   options: { value: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
+  variant?: 'primary' | 'filter';
+  hero?: boolean;
 }) {
   const theme = useTheme();
+  const filter = variant === 'filter';
   return (
-    <View style={[styles.segmented, { backgroundColor: theme.backgroundElement }]}>
+    <View
+      accessibilityRole="tablist"
+      style={[
+        styles.segmented,
+        { backgroundColor: hero ? theme.heroChip : theme.surface2, borderRadius: filter ? Radius.filterSeg : Radius.pill },
+      ]}>
       {options.map((o) => {
         const active = o.value === value;
+        const itemBg = !active ? 'transparent' : hero ? theme.onAccent : filter ? theme.surface : theme.ink;
+        const itemFg = !active ? (hero ? theme.onAccent : theme.text2) : hero ? theme.accent : filter ? theme.text : theme.onInk;
         return (
           <Pressable
             key={o.value}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => onChange(o.value)}
-            style={[styles.segment, active && { backgroundColor: theme.background }]}>
-            <ThemedText type="small" themeColor={active ? 'text' : 'textSecondary'} style={active && { fontWeight: 700 }}>
+            style={[
+              styles.segment,
+              {
+                height: filter ? 38 : 40,
+                borderRadius: filter ? Radius.filterSeg - 3 : Radius.pill,
+                backgroundColor: itemBg,
+              },
+              active && filter && Shadow.raisedSegment,
+            ]}>
+            <ThemedText type="meta" numberOfLines={1} style={{ color: itemFg, fontFamily: FontFamily[800], fontSize: filter ? 12 : options.length > 3 ? 13 : 14 }}>
               {o.label}
             </ThemedText>
           </Pressable>
@@ -234,36 +428,30 @@ export function Segmented<T extends string>({
   );
 }
 
-export function Checkbox({
-  checked,
-  onPress,
-  color,
-  label,
-}: {
-  checked: boolean;
-  onPress: () => void;
-  color?: string | null;
-  label?: string;
-}) {
+/** Round task checkbox: 28 px circle inside a 52 × 52 hit area. */
+export function Checkbox({ checked, onPress, color, label }: { checked: boolean; onPress: () => void; color?: string | null; label?: string }) {
   const theme = useTheme();
-  const c = color ?? theme.accent;
+  const c = color ?? theme.mark;
   return (
     <Pressable
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       accessibilityLabel={label}
       onPress={onPress}
-      hitSlop={10}
-      style={[styles.checkbox, { borderColor: c, backgroundColor: checked ? c : 'transparent' }]}>
-      {checked ? <Icon name="check" size={14} color={theme.accentText} /> : null}
+      style={styles.checkboxHit}>
+      <View style={[styles.checkbox, { borderColor: checked ? c : theme.text2, backgroundColor: checked ? c : 'transparent' }]}>
+        {checked ? <Icon name="check" size={20} color={color ? onColor(color) : theme.onMark} /> : null}
+      </View>
     </Pressable>
   );
 }
 
+// ---------------------------------------------------------------- Forms
+
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <View style={styles.field}>
-      <ThemedText type="smallBold" themeColor="textSecondary">
+      <ThemedText type="meta" themeColor="text2" style={{ fontFamily: FontFamily[700] }}>
         {label}
       </ThemedText>
       {children}
@@ -271,102 +459,140 @@ export function Field({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-export function Input(props: TextInputProps & { big?: boolean }) {
+/** Text input: 52 tall, radius 16, 1 px border; focused 2 px accent; `error` shows a red border and a message. */
+export function Input(props: TextInputProps & { big?: boolean; error?: string }) {
   const theme = useTheme();
-  const { big, style, ...rest } = props;
+  const { big, error, style, onFocus, onBlur, ...rest } = props;
+  const [focused, setFocused] = useState(false);
+  const bw = focused || error ? 2 : 1;
+  const font = big ? Type.cardTitleL : { fontSize: 16, lineHeight: 22, weight: 600 as const };
   return (
-    <TextInput
-      placeholderTextColor={theme.textSecondary}
-      {...rest}
-      style={[
-        styles.input,
-        big && styles.inputBig,
-        props.multiline && styles.inputMultiline,
-        { color: theme.text, backgroundColor: theme.backgroundElement, borderColor: theme.border },
-        style,
-      ]}
-    />
+    <View style={styles.inputWrap}>
+      <TextInput
+        placeholderTextColor={hexA(theme.text2, 0.8)}
+        {...rest}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        style={[
+          styles.input,
+          props.multiline && styles.inputMultiline,
+          {
+            color: theme.text,
+            backgroundColor: theme.surface,
+            borderColor: error ? theme.danger : focused ? theme.mark : theme.border,
+            borderWidth: bw,
+            paddingHorizontal: 17 - bw,
+            fontFamily: FontFamily[font.weight],
+            fontSize: font.fontSize,
+            lineHeight: font.lineHeight,
+          },
+          style,
+        ]}
+      />
+      {error ? (
+        <View style={styles.errorRow}>
+          <Icon name="error" size={16} color={theme.dangerText} />
+          <ThemedText type="meta" style={{ color: theme.dangerText }}>
+            {error}
+          </ThemedText>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
-export function Empty({ text }: { text: string }) {
+// ---------------------------------------------------------------- Progress and tiles
+
+/**
+ * Progress meter, 8–10 px. `severity` colours the fill by load: mark → warning above 90 % → danger above 100 %.
+ * Without it the fill is `color` (default mark). The track is the fill colour at 16 %.
+ */
+export function Meter({
+  value,
+  label,
+  height = 8,
+  color,
+  severity,
+  trackColor,
+}: {
+  value: number;
+  label?: string;
+  height?: number;
+  color?: string;
+  severity?: boolean;
+  trackColor?: string;
+}) {
+  const theme = useTheme();
+  const v = Math.max(0, Math.min(1, value));
+  const fill = severity ? (value > 1 ? theme.danger : value > 0.9 ? theme.warning : (color ?? theme.mark)) : (color ?? theme.mark);
   return (
-    <ThemedText type="small" themeColor="textSecondary" style={styles.empty}>
-      {text}
-    </ThemedText>
+    <View
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(v * 100) }}
+      style={{ height, borderRadius: height / 2, backgroundColor: trackColor ?? hexA(fill, 0.16), overflow: 'hidden' }}>
+      <View style={{ width: `${v * 100}%`, height, borderRadius: height / 2, backgroundColor: fill }} />
+    </View>
   );
 }
 
-export function Row({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[styles.row, style]}>{children}</View>;
+/** Small stat card: label, big value, sub line. */
+export function StatTile({ label, value, sub, onPress, children }: { label: string; value: string; sub?: string; onPress?: () => void; children?: ReactNode }) {
+  const theme = useTheme();
+  const body = (
+    <View style={[styles.tile, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <ThemedText type="meta" themeColor="text2" style={{ fontFamily: FontFamily[700] }}>
+        {label}
+      </ThemedText>
+      <ThemedText type="statValue" tabular>
+        {value}
+      </ThemedText>
+      {sub ? (
+        <ThemedText type="axis" themeColor="text2" style={{ fontSize: 12, fontFamily: FontFamily[600] }}>
+          {sub}
+        </ThemedText>
+      ) : null}
+      {children}
+    </View>
+  );
+  return onPress ? (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}${sub ? `, ${sub}` : ''}`} onPress={onPress} style={styles.flex}>
+      {body}
+    </Pressable>
+  ) : (
+    <View style={styles.flex}>{body}</View>
+  );
 }
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  center: { flex: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.two,
-    gap: Spacing.two,
-  },
-  content: { paddingHorizontal: Spacing.three, gap: Spacing.three },
+  center: { flex: 1, width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' },
-  section: { gap: Spacing.two },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 12 },
-  card: { borderRadius: Radius.lg, padding: Spacing.three, gap: Spacing.two },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-  },
-  buttonSmall: { paddingHorizontal: Spacing.two + 2, paddingVertical: 6 },
-  iconButton: { padding: Spacing.one },
-  fab: { position: 'absolute', right: Spacing.four },
-  fabButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  chip: {
-    paddingHorizontal: Spacing.two + 4,
-    paddingVertical: 5,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  segmented: { flexDirection: 'row', borderRadius: Radius.md, padding: 3 },
-  segment: { flex: 1, alignItems: 'center', paddingVertical: 7, borderRadius: Radius.sm },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  field: { gap: Spacing.one },
-  input: {
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: 10,
-    fontSize: 16,
-  },
-  inputBig: { fontSize: 20, fontWeight: 600 },
-  inputMultiline: { minHeight: 140, textAlignVertical: 'top' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingLeft: 20, paddingRight: Layout.screenPaddingX, paddingBottom: Spacing.two },
+  fab: { position: 'absolute', right: Layout.fabOffset.right },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+  card: { borderRadius: Radius.card, borderWidth: 1, padding: Layout.cardPadding, gap: Spacing.two },
   empty: { paddingVertical: Spacing.two },
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  fabButton: { width: Layout.fabSize, height: Layout.fabSize, borderRadius: Radius.fab, alignItems: 'center', justifyContent: 'center' },
+  chip: { height: 38, paddingHorizontal: 14, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
+  swatch: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  segmented: { flexDirection: 'row', padding: 3, gap: 2 },
+  segment: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  checkboxHit: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
+  checkbox: { width: 28, height: 28, borderRadius: 14, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  field: { gap: 6 },
+  inputWrap: { gap: 6 },
+  input: { minHeight: 52, borderRadius: Radius.input, paddingVertical: 11 },
+  inputMultiline: { minHeight: 100, textAlignVertical: 'top', paddingTop: 14 },
+  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tile: { borderRadius: Radius.card, borderWidth: 1, paddingVertical: 14, paddingHorizontal: 16, gap: 2 },
 });
+

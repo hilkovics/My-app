@@ -93,19 +93,19 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t.plan.dialog.cancel}>
-        <Pressable style={[styles.sheet, { backgroundColor: theme.background, borderColor: theme.border }]} onPress={() => {}}>
+        <Pressable style={[styles.sheet, { backgroundColor: theme.bg, borderColor: theme.border }]} onPress={() => {}}>
           <ThemedText type="smallBold">
             {t.plan.dialog.title} · {fmtDateLong(r.day)}
           </ThemedText>
           {view ? (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {t.plan.remaining} {fmtMinutes(view.plan.remainingMinutes)} · {fmtMinutes(view.plan.freeMinutes)} {t.plan.free} · pridávaš {fmtMinutes(r.minutes)}
             </ThemedText>
           ) : null}
 
           {options.length ? (
             <>
-              <ThemedText type="smallBold" themeColor="textSecondary">
+              <ThemedText type="smallBold" themeColor="text2">
                 {t.plan.dialog.shorten}
               </ThemedText>
               <ScrollView style={styles.options}>
@@ -141,7 +141,7 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
             {view?.freeDay != null ? (
               <Button small variant="secondary" label={`${t.plan.dialog.moveTo} ${fmtDateLongAcc(view.freeDay)}`} onPress={() => onProceed(view.freeDay!)} />
             ) : view ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.plan.dialog.noFreeDay}
               </ThemedText>
             ) : null}
@@ -157,7 +157,7 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'center', padding: Spacing.three },
-  sheet: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.two, width: '100%', maxWidth: 440, alignSelf: 'center', maxHeight: '85%' },
+  sheet: { borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.two, width: '100%', maxWidth: 440, alignSelf: 'center', maxHeight: '85%' },
   options: { maxHeight: 220 },
   optionRow: { flexWrap: 'nowrap', justifyContent: 'space-between', paddingVertical: 2 },
   actions: { justifyContent: 'flex-end' },

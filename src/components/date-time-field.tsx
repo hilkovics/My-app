@@ -69,8 +69,8 @@ export function DateTimeField({
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => setOpen((o) => !o)}
-        style={[styles.value, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
-        <ThemedText themeColor={value == null ? 'textSecondary' : 'text'}>{text}</ThemedText>
+        style={[styles.value, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <ThemedText themeColor={value == null ? 'text2' : 'text'}>{text}</ThemedText>
       </Pressable>
       {open ? (
         <View style={[styles.panel, { borderColor: theme.border }]}>
@@ -88,7 +88,7 @@ export function DateTimeField({
           <MonthGrid month={month} selected={value} onSelect={setDay} compact />
           {showTime ? (
             <View style={styles.timeRow}>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 Čas
               </ThemedText>
               <Input
@@ -113,12 +113,12 @@ export function DateTimeField({
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.two },
   value: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.buttonSquare,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing.three,
     paddingVertical: 10,
   },
-  panel: { borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.md, padding: Spacing.two, gap: Spacing.two },
+  panel: { borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.buttonSquare, padding: Spacing.two, gap: Spacing.two },
   quick: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' },

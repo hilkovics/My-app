@@ -55,7 +55,7 @@ export function StackedColumnChart({
 
   return (
     <View style={styles.wrap}>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.tooltip}>
+      <ThemedText type="small" themeColor="text2" style={styles.tooltip}>
         {tooltip}
       </ThemedText>
       <View style={[styles.plot, { height, borderColor: theme.border }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
@@ -96,7 +96,7 @@ export function StackedColumnChart({
             <ThemedText
               key={i}
               type="small"
-              themeColor="textSecondary"
+              themeColor="text2"
               style={[styles.label, { left: (i + 0.5) * slot - LABEL_WIDTH / 2 }]}>
               {l}
             </ThemedText>

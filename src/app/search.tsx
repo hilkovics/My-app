@@ -14,7 +14,7 @@ export default function SearchScreen() {
   const [text, setText] = useState('');
   const results = useLiveQuery((d) => searchItems(d, text), [text]) ?? [];
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Input value={text} onChangeText={setText} placeholder={t.search.placeholder} autoFocus />
       {text.trim() && !results.length ? <Empty text={t.search.empty} /> : null}
       <View>

@@ -63,7 +63,7 @@ export function TodayPlanCard() {
               </ThemedText>
             ) : null}
             {running ? (
-              <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+              <ThemedText type="small" themeColor="text2" numberOfLines={1}>
                 ⏱ {running.itemTitle ?? t.focus.running} · {fmtClock(sessionDuration(running, now))}
               </ThemedText>
             ) : null}

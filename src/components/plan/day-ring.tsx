@@ -5,7 +5,7 @@ import Svg, { Circle, G, Line, Path, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/use-theme';
 import { arcPath, hitTestRing, polar, splitAt } from '@/features/plan/geometry';
 import type { DayPlan, RadialPosition } from '@/features/plan/layout';
-import { withAlpha } from '@/lib/color';
+import { hexA } from '@/lib/color';
 
 /**
  * 24-hour ring: midnight at the top, 15° per hour, clockwise.
@@ -67,10 +67,10 @@ export function DayRing({
       }}>
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <Circle cx={c} cy={c} r={r} stroke={theme.backgroundSelected} strokeWidth={w} fill="none" />
+        <Circle cx={c} cy={c} r={r} stroke={theme.surface2} strokeWidth={w} fill="none" />
 
         {plan.sleep.map((a, i) => (
-          <Path key={`sleep${i}`} d={arcPath(c, c, r, a.start_angle, a.end_angle)} stroke={withAlpha(theme.textSecondary, 0.28)} strokeWidth={w} fill="none" />
+          <Path key={`sleep${i}`} d={arcPath(c, c, r, a.start_angle, a.end_angle)} stroke={hexA(theme.text2, 0.28)} strokeWidth={w} fill="none" />
         ))}
 
         {plan.entries.map((e) => {
@@ -85,10 +85,10 @@ export function DayRing({
           const common = { strokeWidth: w, fill: 'none' as const, strokeDasharray: dash };
           return (
             <G key={e.key}>
-              {past ? <Path d={arcPath(c, c, r, past[0], past[1])} stroke={withAlpha(stroke, alpha * 0.3)} {...common} /> : null}
-              {future ? <Path d={arcPath(c, c, r, future[0], future[1])} stroke={withAlpha(stroke, alpha)} {...common} /> : null}
+              {past ? <Path d={arcPath(c, c, r, past[0], past[1])} stroke={hexA(stroke, alpha * 0.3)} {...common} /> : null}
+              {future ? <Path d={arcPath(c, c, r, future[0], future[1])} stroke={hexA(stroke, alpha)} {...common} /> : null}
               {e.overflow ? (
-                <Path d={arcPath(c, c, r + w / 2 + 3, rp.start_angle, rp.end_angle)} stroke={withAlpha(theme.danger, dim(e.key))} strokeWidth={3} fill="none" />
+                <Path d={arcPath(c, c, r + w / 2 + 3, rp.start_angle, rp.end_angle)} stroke={hexA(theme.danger, dim(e.key))} strokeWidth={3} fill="none" />
               ) : null}
               {selectedKey === e.key ? (
                 <Path d={arcPath(c, c, r + w / 2 + 1, rp.start_angle, rp.end_angle)} stroke={theme.text} strokeWidth={2} fill="none" />
@@ -98,7 +98,7 @@ export function DayRing({
         })}
 
         {elapsedAngle != null ? (
-          <Path d={arcPath(c, c, rProgress, 0, elapsedAngle)} stroke={theme.textSecondary} strokeWidth={3} strokeLinecap="round" fill="none" />
+          <Path d={arcPath(c, c, rProgress, 0, elapsedAngle)} stroke={theme.text2} strokeWidth={3} strokeLinecap="round" fill="none" />
         ) : null}
         {workArcs.map((a, i) => (
           <Path key={`work${i}`} d={arcPath(c, c, rWork, a.start_angle, a.end_angle)} stroke={theme.accent} strokeWidth={4} fill="none" />
@@ -108,7 +108,7 @@ export function DayRing({
           ? [0, 6, 12, 18].map((h) => {
               const p = polar(c, c, r + w / 2 + 11, h * 15);
               return (
-                <SvgText key={h} x={p.x} y={p.y + 3.5} fontSize={10} fill={theme.textSecondary} textAnchor="middle">
+                <SvgText key={h} x={p.x} y={p.y + 3.5} fontSize={10} fill={theme.text2} textAnchor="middle">
                   {h}
                 </SvgText>
               );
@@ -117,10 +117,10 @@ export function DayRing({
         {[0, 90, 180, 270].map((a) => {
           const p1 = polar(c, c, r - w / 2, a);
           const p2 = polar(c, c, r + w / 2, a);
-          return <Line key={a} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke={theme.background} strokeWidth={1.5} />;
+          return <Line key={a} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke={theme.bg} strokeWidth={1.5} />;
         })}
         {elapsedAngle != null && elapsedAngle < 360 ? (
-          <Circle cx={polar(c, c, r, elapsedAngle).x} cy={polar(c, c, r, elapsedAngle).y} r={w * 0.3 + 1} fill={theme.text} stroke={theme.background} strokeWidth={2} />
+          <Circle cx={polar(c, c, r, elapsedAngle).x} cy={polar(c, c, r, elapsedAngle).y} r={w * 0.3 + 1} fill={theme.text} stroke={theme.bg} strokeWidth={2} />
         ) : null}
       </Svg>
       </View>

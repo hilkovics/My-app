@@ -76,11 +76,11 @@ export function TodayActivities() {
                 accessibilityLabel={`${a.name} ${count}/${a.targetPerDay}`}
                 onPress={() => void logCheck(db, a.id, ymd(day), 1)}
                 onLongPress={() => void logCheck(db, a.id, ymd(day), -1)}
-                style={[styles.habit, { borderColor: c, backgroundColor: done ? c : theme.backgroundElement }]}>
+                style={[styles.habit, { borderColor: c, backgroundColor: done ? c : theme.surface }]}>
                 <ThemedText style={{ color: done ? onColor(c) : theme.text }}>
                   {a.icon} {a.name}
                 </ThemedText>
-                <ThemedText type="small" style={{ color: done ? onColor(c) : theme.textSecondary }}>
+                <ThemedText type="small" style={{ color: done ? onColor(c) : theme.text2 }}>
                   {count}/{a.targetPerDay}
                   {streak ? ` · 🔥 ${streak}` : ''}
                 </ThemedText>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   between: { justifyContent: 'space-between', flexWrap: 'nowrap' },
   habit: {
     borderWidth: 1.5,
-    borderRadius: Radius.md,
+    borderRadius: Radius.buttonSquare,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     minWidth: 120,

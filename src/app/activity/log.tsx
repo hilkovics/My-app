@@ -36,8 +36,8 @@ export default function ActivityLogScreen() {
     },
     [p.id ?? null, p.activityId ?? null],
   );
-  if (!data) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
-  if (!data.activity) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!data) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
+  if (!data.activity) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   return <LogForm key={data.log?.id ?? 'new'} activity={data.activity} log={data.log} finishing={p.finish === '1'} />;
 }
 
@@ -88,7 +88,7 @@ function LogForm({ activity: a, log, finishing }: { activity: Activity; log: Act
   return (
     <>
       <Stack.Screen options={{ title: `${a.icon} ${finishing ? t.activities.finish : t.activities.log}` }} />
-      <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <ThemedText type="subtitle" style={styles.title}>
           {a.icon} {a.name}
         </ThemedText>
@@ -104,7 +104,7 @@ function LogForm({ activity: a, log, finishing }: { activity: Activity; log: Act
           <Field label={t.activities.distance}>
             <Input value={km} onChangeText={setKm} keyboardType="decimal-pad" placeholder="5,2" autoFocus={finishing} />
             {pace ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="text2">
                 {t.activities.pace}: {pace}
               </ThemedText>
             ) : null}

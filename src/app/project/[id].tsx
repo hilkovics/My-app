@@ -4,10 +4,9 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ItemRow } from '@/components/item-row';
 import { KanbanBoard } from '@/components/kanban-board';
-import { Meter } from '@/components/meter';
 import { useGuardedCreate } from '@/components/plan/capacity-guard';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, Chip, Empty, IconButton, Input, Row, Section, Segmented } from '@/components/ui';
+import { Button, Card, Chip, Empty, IconButton, Input, Meter, Row, Section, Segmented } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import { checklistProgress, listProjectItems } from '@/features/items/repository';
@@ -42,11 +41,11 @@ export default function ProjectScreen() {
     [id],
   );
   const progress = useLiveQuery((d) => checklistProgress(d), []);
-  if (!data) return <View style={{ flex: 1, backgroundColor: theme.background }} />;
+  if (!data) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
   const { project, goal, items, templates } = data;
   if (!project) {
     return (
-      <View style={[styles.content, { flex: 1, backgroundColor: theme.background }]}>
+      <View style={[styles.content, { flex: 1, backgroundColor: theme.bg }]}>
         <Empty text={t.item.notFound} />
       </View>
     );
@@ -75,21 +74,21 @@ export default function ProjectScreen() {
           ),
         }}
       />
-      <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Card>
           <Row style={styles.between}>
             <ThemedText type="smallBold">
               {prog.total ? `${prog.done}/${prog.total} ${t.projects.tasks} · ${prog.pct} %` : t.projects.emptyProgress}
             </ThemedText>
             {project.deadline != null ? (
-              <ThemedText type="small" style={{ color: project.deadline < now && !finished && prog.pct < 100 ? theme.danger : theme.textSecondary }}>
+              <ThemedText type="small" style={{ color: project.deadline < now && !finished && prog.pct < 100 ? theme.danger : theme.text2 }}>
                 {t.projects.deadline.toLowerCase()} {fmtCountdown(project.deadline, now)}
               </ThemedText>
             ) : null}
           </Row>
           <Meter value={prog.pct / 100} label={`${prog.pct} %`} />
           {goal ? (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="text2">
               {goal.icon} {goal.name}
             </ThemedText>
           ) : null}

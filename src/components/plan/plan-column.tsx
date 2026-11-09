@@ -42,7 +42,7 @@ export function PlanColumn({
         </View>
       ))}
       <View pointerEvents="none" style={[styles.line, { top: plan.capacity_line_px, borderColor: theme.danger }]}>
-        <ThemedText type="small" style={[styles.lineLabel, { color: theme.danger, backgroundColor: theme.background }]}>
+        <ThemedText type="small" style={[styles.lineLabel, { color: theme.danger, backgroundColor: theme.bg }]}>
           {t.plan.capacityLine}
         </ThemedText>
       </View>

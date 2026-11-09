@@ -47,14 +47,14 @@ export function ColumnChart({
 
   return (
     <View style={styles.wrap}>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.tooltip} numberOfLines={1}>
+      <ThemedText type="small" themeColor="text2" style={styles.tooltip} numberOfLines={1}>
         {sel ? `${sel.title}: ${formatValue(sel.value)}` : ' '}
       </ThemedText>
       <View style={{ height }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {goal ? (
-          <View pointerEvents="none" style={[styles.goal, { bottom: (goal / max) * height, borderColor: theme.textSecondary }]}>
+          <View pointerEvents="none" style={[styles.goal, { bottom: (goal / max) * height, borderColor: theme.text2 }]}>
             {goalLabel ? (
-              <ThemedText type="small" themeColor="textSecondary" style={[styles.goalLabel, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="small" themeColor="text2" style={[styles.goalLabel, { backgroundColor: theme.surface }]}>
                 {goalLabel}
               </ThemedText>
             ) : null}
@@ -90,7 +90,7 @@ export function ColumnChart({
             <ThemedText
               key={d.key}
               type="small"
-              themeColor="textSecondary"
+              themeColor="text2"
               style={[styles.label, { left: (i + 0.5) * slot - LABEL_WIDTH / 2 }]}>
               {d.label}
             </ThemedText>
