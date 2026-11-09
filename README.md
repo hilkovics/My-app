@@ -16,9 +16,27 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 | --- | --- |
 | **Dnes** | Program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, dnešné návyky, pripnuté poznámky, denník |
 | **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
-| **Úlohy** | Inbox, Dnes, Naplánované, Hotové. Rýchle pridávanie po slovensky. Opakované úlohy sa po splnení posunú na ďalší termín |
+| **Úlohy** | Prepínač **Zoznam / Nástenka / Projekty**. Zoznam: Inbox, Dnes, Naplánované, Hotové a rýchle pridávanie po slovensky; opakované úlohy sa po splnení posunú na ďalší termín. **Nástenka (Kanban)** so stavmi Na urobenie / Rozpracované / Čaká na… / Hotové. **Projekty** s progresom úloh |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
-| **Pokrok** | **Aktivity** (hra na nástroji, beh, mixovanie hudby… aj návyky na odškrtávanie) s ročnou mapou dní a týždenným mixom, **Fokus** (časovač sústredenej práce) a jeho **Štatistiky** |
+| **Pokrok** | **Aktivity** (hra na nástroji, beh, mixovanie hudby… aj návyky), **Ciele**, **Fokus** (časovač sústredenej práce) a jeho **Štatistiky** |
+
+### Projekty, nástenka, ciele a šablóny
+
+- **Stav úlohy:** Na urobenie → Rozpracované → Čaká na… (s poznámkou kto/čo) → Hotové. Na **nástenke** sa karta
+  presúva šípkami ◀ ▶, podržaním otvoríš výber stavu; v hlavičke stĺpca je „+“ na rýchle pridanie úlohy.
+  Stav sa dá meniť aj v detaile úlohy a zaškrtnutie úlohy ju vždy presunie do Hotové (opakovaná úloha sa
+  posunie na ďalší termín a vráti do Na urobenie).
+- **Projekty** zoskupujú úlohy a poznámky: progres (hotové/všetky), odpočet do termínu („o 42 dní“), počet
+  úloh po termíne, vlastný zoznam aj nástenka. Záznam k projektu priradíš v jeho detaile (čipy Projekt).
+- **Ciele** (Pokrok → Ciele): *z projektov* (podiel hotových úloh vo všetkých projektoch cieľa) alebo *z aktivity*
+  (napr. „Nabehať 50 km do 30. 11.“, metrika km / minúty / počet ×) s porovnaním voči lineárnemu plánu
+  („Ideš podľa plánu“ / „Zaostávaš“).
+- **Šablóny** (Nastavenia → Šablóny, alebo „Zo šablóny“ pri vytváraní): úloha, poznámka alebo celý projekt
+  s úlohami, checklistom a termínmi relatívne k vytvoreniu; v názve funguje `{datum}`. Dodávajú sa vzory
+  (Týždenná revízia, Porada, Nákupný zoznam, Balenie na cestu, Koncert / vystúpenie), vlastnú šablónu
+  vytvoríš aj z existujúcej úlohy, poznámky či projektu („Uložiť ako šablónu“).
+- **Opakované šablóny** (denne / týždenne / mesačne) vytvoria záznam samy, keď príde termín (pri otvorení
+  aplikácie). Po dlhšej neprítomnosti sa vytvorí len posledný zmeškaný výskyt, nie hromada kópií.
 
 ### Aktivity
 
@@ -104,6 +122,8 @@ src/
     items/repository.ts     # CRUD, konverzia typov, úlohy, tagy, prepojenia, checklist, upozornenia
     calendar/               # rozvinutie opakovaní, rozloženie dňa, kalendár telefónu
     notifications/          # výpočet časov upozornení + plánovanie cez expo-notifications
+    projects/               # projekty, ciele, progres a odpočty
+    templates/              # šablóny, opakované vytváranie, vzory
     activities/             # aktivity a záznamy, štatistiky (mapa dní, mix, ciele, série), prevod starých návykov
     focus/                  # sedenia, ovládač časovača (notifikácie), štatistiky
     quickadd/parse.ts       # slovenský parser rýchleho pridávania

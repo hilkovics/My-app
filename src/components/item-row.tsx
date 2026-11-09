@@ -22,10 +22,13 @@ export function ItemRow({
   item,
   now: nowProp,
   progress,
+  hideProject,
 }: {
   item: Item;
   now?: number;
   progress?: { done: number; total: number };
+  /** Inside a project's own list the project name would just repeat. */
+  hideProject?: boolean;
 }) {
   const db = useDb();
   const theme = useTheme();
@@ -38,10 +41,13 @@ export function ItemRow({
   const overdue =
     isTask && !done && item.dueAt != null && (isDateOnly(item) ? item.dueAt < startOfDay(now) : item.dueAt < now);
   const meta: string[] = [];
+  if (isTask && !done && item.status === 'doing') meta.push(`▶ ${t.status.doing}`);
+  if (isTask && !done && item.status === 'waiting') meta.push(`⏳ ${item.waitingFor ? `čaká na ${item.waitingFor}` : t.status.waiting.replace('…', '')}`);
   if (when != null && item.type !== 'note') meta.push(fmtDateTime(when, item.allDay || isDateOnly(item), now));
   if (item.type === 'note' && item.eventStart != null) meta.push(`📅 ${fmtDateTime(item.eventStart, false, now)}`);
   if (item.type === 'note' && item.body) meta.push(item.body.replace(/\s+/g, ' ').slice(0, 90));
   if (progress?.total) meta.push(`☑ ${progress.done}/${progress.total}`);
+  if (item.projectName && !hideProject) meta.push(item.projectName);
 
   return (
     <Pressable

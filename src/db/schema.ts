@@ -1,3 +1,4 @@
+import { insertSampleTemplates } from '../features/templates/samples';
 import { habitsToActivities, insertRows, type LegacyHabit, type LegacyHabitLog } from '../features/activities/legacy';
 
 import type { Db } from './types';
@@ -176,6 +177,57 @@ export const MIGRATIONS: Migration[] = [
     await insertRows(db, 'activities', converted.activities);
     await insertRows(db, 'activity_logs', converted.logs);
     await db.execAsync('DROP TABLE habit_logs; DROP TABLE habits;');
+  },
+  // v5: projects, goals, task status (kanban) and templates
+  async (db) => {
+    await db.execAsync(`
+      CREATE TABLE goals (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '🎯',
+        description TEXT NOT NULL DEFAULT '',
+        kind TEXT NOT NULL CHECK (kind IN ('projects', 'activity')),
+        activity_id TEXT REFERENCES activities(id) ON DELETE SET NULL,
+        metric TEXT CHECK (metric IN ('minutes', 'km', 'sessions')),
+        target REAL,
+        start_at INTEGER,
+        deadline INTEGER,
+        archived INTEGER NOT NULL DEFAULT 0,
+        position INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE projects (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📁',
+        color_slot INTEGER NOT NULL DEFAULT 0,
+        description TEXT NOT NULL DEFAULT '',
+        goal_id TEXT REFERENCES goals(id) ON DELETE SET NULL,
+        deadline INTEGER,
+        status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'done', 'archived')),
+        completed_at INTEGER,
+        position INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE templates (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📋',
+        kind TEXT NOT NULL CHECK (kind IN ('task', 'note', 'project')),
+        payload TEXT NOT NULL,
+        rrule TEXT,
+        anchor_at INTEGER,
+        last_run_at INTEGER,
+        created_at INTEGER NOT NULL
+      );
+      ALTER TABLE items ADD COLUMN project_id TEXT REFERENCES projects(id) ON DELETE SET NULL;
+      ALTER TABLE items ADD COLUMN status TEXT;
+      ALTER TABLE items ADD COLUMN waiting_for TEXT;
+      UPDATE items SET status = CASE WHEN completed_at IS NOT NULL THEN 'done' ELSE 'todo' END WHERE type = 'task';
+      CREATE INDEX idx_items_project ON items(project_id);
+      CREATE INDEX idx_items_status ON items(status);
+    `);
+    await insertSampleTemplates(db);
   },
 ];
 

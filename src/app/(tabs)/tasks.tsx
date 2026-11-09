@@ -1,18 +1,21 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ItemRow } from '@/components/item-row';
 import { ThemedText } from '@/components/themed-text';
-import { Empty, IconButton, Input, Screen, Segmented } from '@/components/ui';
+import { KanbanBoard } from '@/components/kanban-board';
+import { ProjectsPanel } from '@/components/projects/projects-panel';
+import { Chip, Empty, IconButton, Input, Screen, Segmented } from '@/components/ui';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import { checklistProgress, createItem, listTasks, setAlerts, type TaskView } from '@/features/items/repository';
+import { listProjects } from '@/features/projects/repository';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { t } from '@/i18n/sk';
 import { describeRule } from '@/lib/recurrence';
 import { fmtDateTime } from '@/lib/dates';
 
-export default function TasksScreen() {
+function TaskList() {
   const db = useDb();
   const now = useNow();
   const [view, setView] = useState<TaskView>('today');
@@ -41,14 +44,7 @@ export default function TasksScreen() {
   };
 
   return (
-    <Screen
-      title={t.tabs.tasks}
-      actions={
-        <>
-          <IconButton name="search" label={t.common.search} onPress={() => router.push('/search')} />
-          <IconButton name="settings" label={t.common.settings} onPress={() => router.push('/settings')} />
-        </>
-      }>
+    <>
       <View style={{ gap: 6 }}>
         <Input
           value={text}
@@ -81,6 +77,55 @@ export default function TasksScreen() {
           <Empty text={t.tasks.empty} />
         )}
       </View>
+    </>
+  );
+}
+
+type TasksView = 'list' | 'board' | 'projects';
+
+export default function TasksScreen() {
+  const [view, setView] = useState<TasksView>('list');
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const projects = useLiveQuery((d) => listProjects(d, 'active'), []) ?? [];
+
+  return (
+    <Screen
+      title={t.tabs.tasks}
+      actions={
+        <>
+          <IconButton name="search" label={t.common.search} onPress={() => router.push('/search')} />
+          <IconButton name="settings" label={t.common.settings} onPress={() => router.push('/settings')} />
+        </>
+      }>
+      <Segmented<TasksView>
+        value={view}
+        onChange={setView}
+        options={[
+          { value: 'list', label: t.taskViews.list },
+          { value: 'board', label: t.taskViews.board },
+          { value: 'projects', label: t.taskViews.projects },
+        ]}
+      />
+      {view === 'list' ? <TaskList /> : null}
+      {view === 'board' ? (
+        <>
+          {projects.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chips}>
+              <Chip label={t.board.allProjects} selected={projectId == null} onPress={() => setProjectId(null)} />
+              {projects.map((p) => (
+                <Chip key={p.id} label={`${p.icon} ${p.name}`} selected={projectId === p.id} onPress={() => setProjectId(projectId === p.id ? null : p.id)} />
+              ))}
+            </ScrollView>
+          ) : null}
+          <KanbanBoard projectId={projectId} />
+        </>
+      ) : null}
+      {view === 'projects' ? <ProjectsPanel /> : null}
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  chipScroll: { flexGrow: 0 },
+  chips: { gap: 8, alignItems: 'center' },
+});

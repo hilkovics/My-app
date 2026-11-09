@@ -3,13 +3,15 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, Input, Row, Segmented } from '@/components/ui';
+import { Button, Card, Chip, Field, Input, Row, Segmented } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import type { ItemType } from '@/db/types';
 import { createItem, setAlerts } from '@/features/items/repository';
 import { parseQuickAdd, toItemInput, type Parsed } from '@/features/quickadd/parse';
 import { getSettings } from '@/features/settings/repository';
+import { openCreated } from '@/features/templates/open';
+import { applyTemplate, listTemplates } from '@/features/templates/repository';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { goBack } from '@/lib/nav';
@@ -18,10 +20,11 @@ import { describeRule } from '@/lib/recurrence';
 
 /** Quick add: one line of text, parsed for date/time/tags/…; type is switchable. */
 export default function NewItemScreen() {
-  const params = useLocalSearchParams<{ type?: ItemType; start?: string; date?: string }>();
+  const params = useLocalSearchParams<{ type?: ItemType; start?: string; date?: string; projectId?: string }>();
   const db = useDb();
   const theme = useTheme();
   const settings = useLiveQuery((d) => getSettings(d), []);
+  const templates = useLiveQuery((d) => listTemplates(d), []) ?? [];
   const [type, setType] = useState<ItemType>(params.type ?? 'task');
   const [text, setText] = useState('');
   const [body, setBody] = useState('');
@@ -50,7 +53,7 @@ export default function NewItemScreen() {
 
   const create = async (thenEdit: boolean) => {
     if (!parsed.title && !body.trim()) return;
-    const item = await createItem(db, { ...input, title: parsed.title, body: body.trim() });
+    const item = await createItem(db, { ...input, title: parsed.title, body: body.trim(), projectId: params.projectId ?? null });
     const timed = type === 'event' || (type === 'task' && (input.dueAt != null || input.startAt != null));
     const alerts = parsed.alerts.length ? parsed.alerts : type === 'event' ? (settings?.defaultAlerts ?? []) : [];
     if (timed && alerts.length) await setAlerts(db, item.id, alerts);
@@ -72,6 +75,24 @@ export default function NewItemScreen() {
           { value: 'note', label: t.types.note },
         ]}
       />
+      {templates.some((tpl) => tpl.kind === type) ? (
+        <Field label={t.templates.fromTemplate}>
+          <Row>
+            {templates
+              .filter((tpl) => tpl.kind === type)
+              .map((tpl) => (
+                <Chip
+                  key={tpl.id}
+                  label={`${tpl.icon} ${tpl.name}`}
+                  onPress={() => void applyTemplate(db, tpl, { projectId: params.projectId ?? null }).then((c) => {
+                      router.dismiss();
+                      openCreated(c);
+                    })}
+                />
+              ))}
+          </Row>
+        </Field>
+      ) : null}
       <Input
         value={text}
         onChangeText={setText}

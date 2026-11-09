@@ -3,9 +3,16 @@ import { notifyChange } from '../../db/changes';
 import { SCHEMA_VERSION } from '../../db/schema';
 import type { Db, Item, SqlParam } from '../../db/types';
 import { parseRule, toIcsRule } from '../../lib/recurrence';
+import { insertSampleTemplates } from '../templates/samples';
 import { habitsToActivities, insertRows, type LegacyHabit, type LegacyHabitLog } from '../activities/legacy';
 
+// Parents before children: rows are inserted in this order and deleted in reverse.
 const TABLES = [
+  'activities',
+  'activity_logs',
+  'goals',
+  'projects',
+  'templates',
   'items',
   'event_notes',
   'tags',
@@ -14,8 +21,6 @@ const TABLES = [
   'external_links',
   'checklist_entries',
   'alerts',
-  'activities',
-  'activity_logs',
   'focus_sessions',
   'settings',
 ] as const;
@@ -53,6 +58,11 @@ export async function importBackup(db: Db, data: unknown): Promise<void> {
   await db.withTransactionAsync(async () => {
     for (const t of [...TABLES].reverse()) await db.runAsync(`DELETE FROM ${t}`);
     for (const t of TABLES) await insertRows(db, t, tables[t] ?? []);
+    // Backups from before task states: derive the state of tasks; before templates: add the samples.
+    await db.runAsync(
+      "UPDATE items SET status = CASE WHEN completed_at IS NOT NULL THEN 'done' ELSE 'todo' END WHERE type = 'task' AND status IS NULL",
+    );
+    if (b.schemaVersion < 5) await insertSampleTemplates(db);
   });
   notifyChange();
 }

@@ -24,6 +24,7 @@ import {
   normalizeTags,
   setAlerts,
   setChecklistDone,
+  setTaskStatus,
   toggleTaskDone,
   unlinkItems,
   updateItem,
@@ -34,7 +35,10 @@ import { fmtMinutes } from '@/features/focus/stats';
 import { getEventLinkForNote, listSeriesNotes } from '@/features/items/event-notes';
 import { ALERT_PRESETS, describeOffset } from '@/features/notifications/plan';
 import { hasPermission, requestPermission, supported as notificationsSupported } from '@/features/notifications/scheduler';
+import { listProjects } from '@/features/projects/repository';
 import { getSettings } from '@/features/settings/repository';
+import { templateFromItem } from '@/features/templates/repository';
+import { STATUSES } from '@/components/status-picker';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { goBack } from '@/lib/nav';
@@ -84,6 +88,8 @@ export default function ItemScreen() {
   const eventNotes = useLiveQuery((d) => listSeriesNotes(d, 'local', id), [id]) ?? [];
   const focusMinutes = useLiveQuery((d) => itemFocusMinutes(d, id), [id]) ?? 0;
   const settings = useLiveQuery((d) => getSettings(d), []);
+  const projects = useLiveQuery((d) => listProjects(d, ['active', 'done']), []) ?? [];
+  const [waitingEdit, setWaitingEdit] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [newEntry, setNewEntry] = useState('');
   const loadedFor = useRef<string | null>(null);
@@ -331,6 +337,33 @@ export default function ItemScreen() {
                 </ThemedText>
               )}
             </Field>
+            <Field label={t.item.status}>
+              <Row>
+                {STATUSES.map((s) => (
+                  <Chip
+                    key={s}
+                    label={t.status[s]}
+                    selected={(item.completedAt != null ? 'done' : (item.status ?? 'todo')) === s}
+                    onPress={() =>
+                      void flush()
+                        .then(() => setTaskStatus(db, id, s))
+                        .then((u) => setDraft(toDraft(u)))
+                    }
+                  />
+                ))}
+              </Row>
+              {item.status === 'waiting' && item.completedAt == null ? (
+                <Input
+                  value={waitingEdit ?? item.waitingFor ?? ''}
+                  onChangeText={setWaitingEdit}
+                  placeholder={t.board.waitingPlaceholder}
+                  accessibilityLabel={t.board.waitingFor}
+                  onBlur={() => {
+                    if (waitingEdit != null) void updateItem(db, id, { waitingFor: waitingEdit.trim() || null }).then(() => setWaitingEdit(null));
+                  }}
+                />
+              ) : null}
+            </Field>
             <Field label={t.item.priority}>
               <Row>
                 {['Žiadna', '!', '!!', '!!!'].map((label, p) => (
@@ -430,6 +463,20 @@ export default function ItemScreen() {
           <Input value={draft.tagsText} onChangeText={(tagsText) => patch({ tagsText })} placeholder={t.item.tagsPlaceholder} autoCapitalize="none" />
         </Field>
 
+        <Field label={t.projects.project}>
+          <Row>
+            <Chip label={t.projects.none} selected={item.projectId == null} onPress={() => void updateItem(db, id, { projectId: null })} />
+            {projects.map((p) => (
+              <Chip
+                key={p.id}
+                label={`${p.icon} ${p.name}`}
+                selected={item.projectId === p.id}
+                onPress={() => void updateItem(db, id, { projectId: item.projectId === p.id ? null : p.id })}
+              />
+            ))}
+          </Row>
+        </Field>
+
         <Field label={t.item.color}>
           <Row>
             <Chip label="—" selected={draft.color == null} onPress={() => patch({ color: null })} />
@@ -501,6 +548,18 @@ export default function ItemScreen() {
 
         {type === 'event' && deviceCalendarSupported && !external ? (
           <Button variant="secondary" icon="phone" label={t.item.copyToDevice} onPress={() => void copyToDevice()} />
+        ) : null}
+
+        {type !== 'event' ? (
+          <Button
+            variant="secondary"
+            label={t.templates.saveAs}
+            onPress={() =>
+              void flush()
+                .then(() => templateFromItem(db, id))
+                .then(() => notify(t.templates.saved))
+            }
+          />
         ) : null}
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.meta}>

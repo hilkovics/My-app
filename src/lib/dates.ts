@@ -158,3 +158,9 @@ export function plural(n: number, one: string, few: string, many: string): strin
   const word = n === 1 ? one : n >= 2 && n <= 4 ? few : many;
   return `${n} ${word}`;
 }
+
+/** First day on or after `from` that falls on `weekday` (Monday = 0), as a day start. */
+export function snapToWeekday(from: number, weekday: number): number {
+  const day = startOfDay(from);
+  return addDays(day, (weekday - weekdayIndex(day) + 7) % 7);
+}

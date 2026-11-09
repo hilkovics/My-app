@@ -1,5 +1,5 @@
 import { notifyChange } from '../../db/changes';
-import type { Alert, ChecklistEntry, Db, Item, ItemInput, ItemType, SqlParam } from '../../db/types';
+import type { Alert, ChecklistEntry, Db, Item, ItemInput, ItemType, SqlParam, TaskStatus } from '../../db/types';
 import { HOUR, endOfDay, roundUpMinutes, startOfDay, ymd } from '../../lib/dates';
 import { newId } from '../../lib/id';
 import { nextOccurrence, parseRule } from '../../lib/recurrence';
@@ -20,10 +20,14 @@ interface ItemRow {
   priority: number;
   rrule: string | null;
   journal_date: string | null;
+  project_id: string | null;
+  status: TaskStatus | null;
+  waiting_for: string | null;
   created_at: number;
   updated_at: number;
   tags: string | null;
   event_start: number | null;
+  project_name: string | null;
 }
 
 const SELECT_ITEMS = `
@@ -31,7 +35,8 @@ const SELECT_ITEMS = `
     SELECT group_concat(t.name, char(31)) FROM item_tags it JOIN tags t ON t.id = it.tag_id
     WHERE it.item_id = i.id
   ) AS tags,
-  (SELECT en.occurrence_start FROM event_notes en WHERE en.note_id = i.id) AS event_start
+  (SELECT en.occurrence_start FROM event_notes en WHERE en.note_id = i.id) AS event_start,
+  (SELECT p.icon || ' ' || p.name FROM projects p WHERE p.id = i.project_id) AS project_name
   FROM items i`;
 
 function toItem(r: ItemRow): Item {
@@ -51,10 +56,14 @@ function toItem(r: ItemRow): Item {
     priority: r.priority,
     rrule: r.rrule,
     journalDate: r.journal_date,
+    projectId: r.project_id,
+    status: r.status,
+    waitingFor: r.waiting_for,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     tags: r.tags ? r.tags.split('\u001f').sort((a, b) => a.localeCompare(b, 'sk')) : [],
     eventStart: r.event_start,
+    projectName: r.project_name,
   };
 }
 
@@ -73,6 +82,9 @@ const COLUMN_MAP: Record<string, string> = {
   priority: 'priority',
   rrule: 'rrule',
   journalDate: 'journal_date',
+  projectId: 'project_id',
+  status: 'status',
+  waitingFor: 'waiting_for',
 };
 
 function toParam(v: unknown): SqlParam {
@@ -105,6 +117,8 @@ export async function listByIds(db: Db, ids: string[]): Promise<Item[]> {
 export async function createItem(db: Db, input: ItemInput, now = Date.now()): Promise<Item> {
   const id = newId();
   const values = normalizeTimes({ ...input });
+  if (values.type === 'task' && values.status === undefined) values.status = values.completedAt != null ? 'done' : 'todo';
+  if (values.type !== 'task') values.status = null;
   const cols = ['id', 'created_at', 'updated_at'];
   const params: SqlParam[] = [id, now, now];
   for (const [key, col] of Object.entries(COLUMN_MAP)) {
@@ -139,6 +153,13 @@ export async function updateItem(
       params.push(toParam((patch as Record<string, unknown>)[key]));
     }
   }
+  // Keep status in step with completedAt when only the latter is changed.
+  if ('completedAt' in patch && !('status' in patch)) {
+    sets.push(
+      "status = CASE WHEN type = 'task' THEN (CASE WHEN ? IS NOT NULL THEN 'done' WHEN status = 'done' THEN 'todo' ELSE status END) ELSE status END",
+    );
+    params.push(toParam(patch.completedAt));
+  }
   await db.withTransactionAsync(async () => {
     await db.runAsync(`UPDATE items SET ${sets.join(', ')} WHERE id = ?`, ...params, id);
     if (patch.tags) await writeTags(db, id, patch.tags);
@@ -170,6 +191,8 @@ export async function convertItem(db: Db, id: string, type: ItemType, now = Date
   const item = await getItem(db, id);
   if (!item) throw new Error('Záznam neexistuje');
   const patch: Partial<Item> = { type };
+  patch.status = type === 'task' ? (item.completedAt != null && item.type === 'task' ? 'done' : 'todo') : null;
+  if (type !== 'task') patch.waitingFor = null;
   if (type === 'event') {
     const start = item.startAt ?? item.dueAt ?? roundUpMinutes(now, 30);
     patch.startAt = start;
@@ -295,7 +318,36 @@ export async function listAllItems(db: Db): Promise<Item[]> {
 export async function toggleTaskDone(db: Db, id: string, now = Date.now()): Promise<Item> {
   const item = await getItem(db, id);
   if (!item) throw new Error('Záznam neexistuje');
-  if (item.completedAt) return updateItem(db, id, { completedAt: null }, now);
+  return setTaskStatus(db, id, item.completedAt ? 'todo' : 'done', undefined, now);
+}
+
+/**
+ * Moves a task to a kanban state. 'done' completes it; a recurring task instead jumps to its next
+ * occurrence and goes back to 'todo'. Leaving 'done' clears the completion time.
+ * `waitingFor` (who/what) is kept only for 'waiting'.
+ */
+export async function setTaskStatus(
+  db: Db,
+  id: string,
+  status: TaskStatus,
+  waitingFor?: string | null,
+  now = Date.now(),
+): Promise<Item> {
+  const item = await getItem(db, id);
+  if (!item) throw new Error('Záznam neexistuje');
+  if (item.type !== 'task') throw new Error('Stav majú len úlohy');
+  if (status !== 'done') {
+    return updateItem(
+      db,
+      id,
+      {
+        status,
+        completedAt: null,
+        waitingFor: status === 'waiting' ? (waitingFor !== undefined ? waitingFor : item.waitingFor) : null,
+      },
+      now,
+    );
+  }
   const rule = parseRule(item.rrule);
   const anchor = item.startAt ?? item.dueAt;
   if (rule && anchor != null) {
@@ -309,6 +361,8 @@ export async function toggleTaskDone(db: Db, id: string, now = Date.now()): Prom
         db,
         id,
         {
+          status: 'todo',
+          waitingFor: null,
           startAt: item.startAt != null ? item.startAt + shift : null,
           endAt: item.endAt != null ? item.endAt + shift : null,
           dueAt: item.dueAt != null ? item.dueAt + shift : null,
@@ -317,7 +371,39 @@ export async function toggleTaskDone(db: Db, id: string, now = Date.now()): Prom
       );
     }
   }
-  return updateItem(db, id, { completedAt: now }, now);
+  return updateItem(db, id, { status: 'done', completedAt: now, waitingFor: null }, now);
+}
+
+export type Board = Record<TaskStatus, Item[]>;
+
+/** Tasks for the kanban board: all open ones plus those finished in the last 14 days. */
+export async function listBoardTasks(db: Db, f: { projectId?: string | null } = {}, now = Date.now()): Promise<Board> {
+  const where = ["i.type = 'task'", 'i.archived = 0', `(i.completed_at IS NULL OR i.completed_at >= ${Math.floor(now - 14 * 86_400_000)})`];
+  const params: SqlParam[] = [];
+  if (f.projectId) {
+    where.push('i.project_id = ?');
+    params.push(f.projectId);
+  }
+  const items = await query(db, where.join(' AND '), params, 'ORDER BY i.priority DESC, COALESCE(i.due_at, i.start_at) IS NULL, COALESCE(i.due_at, i.start_at), i.created_at DESC');
+  const board: Board = { todo: [], doing: [], waiting: [], done: [] };
+  for (const it of items) board[it.completedAt != null ? 'done' : (it.status === 'done' ? 'todo' : (it.status ?? 'todo'))].push(it);
+  board.done.sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
+  return board;
+}
+
+/** All non-archived items that belong to some project (for progress of many projects at once). */
+export async function listItemsWithProject(db: Db): Promise<Item[]> {
+  return query(db, 'i.project_id IS NOT NULL AND i.archived = 0');
+}
+
+/** All non-archived items of a project: open tasks first, then other items, finished tasks last. */
+export async function listProjectItems(db: Db, projectId: string): Promise<Item[]> {
+  return query(
+    db,
+    'i.project_id = ? AND i.archived = 0',
+    [projectId],
+    "ORDER BY (i.completed_at IS NOT NULL), CASE i.type WHEN 'task' THEN 0 WHEN 'event' THEN 1 ELSE 2 END, COALESCE(i.due_at, i.start_at) IS NULL, COALESCE(i.due_at, i.start_at), i.created_at",
+  );
 }
 
 /** Puts a task into the calendar at `start` for `minutes`. */

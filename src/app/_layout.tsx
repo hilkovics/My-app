@@ -7,6 +7,7 @@ import { useDb } from '@/db/hooks';
 import { migrate } from '@/db/schema';
 import type { Db } from '@/db/types';
 import { finishDueFocus } from '@/features/focus/controller';
+import { runDueTemplates } from '@/features/templates/repository';
 import {
   configureNotifications,
   rescheduleAll,
@@ -28,11 +29,13 @@ function AppServices() {
       stop = startNotificationSync(db, (id) => router.push({ pathname: '/item/[id]', params: { id } }));
       await rescheduleAll(db);
       await finishDueFocus(db);
+      await runDueTemplates(db);
     })().catch((e) => console.warn('notifications', e));
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'active') {
         void rescheduleAll(db).catch(() => {});
         void finishDueFocus(db).catch(() => {});
+        void runDueTemplates(db).catch(() => {});
       }
     });
     return () => {
@@ -56,6 +59,12 @@ export default function RootLayout() {
           <Stack.Screen name="item/link" options={{ title: 'Prepojiť', presentation: 'modal' }} />
           <Stack.Screen name="event/notes" options={{ title: 'Poznámky' }} />
           <Stack.Screen name="external/[id]" options={{ title: 'Udalosť z telefónu' }} />
+          <Stack.Screen name="project/[id]" options={{ title: 'Projekt' }} />
+          <Stack.Screen name="project/edit" options={{ title: 'Projekt' }} />
+          <Stack.Screen name="goal/[id]" options={{ title: 'Cieľ' }} />
+          <Stack.Screen name="goal/edit" options={{ title: 'Cieľ' }} />
+          <Stack.Screen name="templates/index" options={{ title: 'Šablóny' }} />
+          <Stack.Screen name="templates/edit" options={{ title: 'Šablóna' }} />
           <Stack.Screen name="activity/[id]" options={{ title: 'Aktivita' }} />
           <Stack.Screen name="activity/edit" options={{ title: 'Aktivita' }} />
           <Stack.Screen name="activity/log" options={{ title: 'Záznam', presentation: 'modal' }} />

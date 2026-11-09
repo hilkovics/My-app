@@ -1,6 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
@@ -203,6 +204,10 @@ export default function SettingsScreen() {
             <Chip key={h} label={`${h}:00`} selected={settings.dayStartHour === h} onPress={() => void setSetting(db, 'dayStartHour', h)} />
           ))}
         </Row>
+      </Section>
+
+      <Section title={t.templates.title}>
+        <Button variant="secondary" label={t.templates.title} onPress={() => router.push('/templates')} />
       </Section>
 
       <Section title={t.settings.data}>

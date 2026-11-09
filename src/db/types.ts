@@ -18,6 +18,9 @@ export interface Db {
  */
 export type ItemType = 'event' | 'task' | 'note';
 
+/** Kanban state of a task. 'done' <=> completedAt is set. */
+export type TaskStatus = 'todo' | 'doing' | 'waiting' | 'done';
+
 export interface Item {
   id: string;
   type: ItemType;
@@ -34,11 +37,18 @@ export interface Item {
   priority: number;
   rrule: string | null;
   journalDate: string | null;
+  projectId: string | null;
+  /** Tasks only (null for events and notes). */
+  status: TaskStatus | null;
+  /** Who/what a 'waiting' task waits for. */
+  waitingFor: string | null;
   createdAt: number;
   updatedAt: number;
   tags: string[];
   /** For notes attached to an event occurrence: that occurrence's start. */
   eventStart?: number | null;
+  /** "📁 Name" of the project, for lists. */
+  projectName?: string | null;
 }
 
 export type ItemInput = Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>> & { type: ItemType };
