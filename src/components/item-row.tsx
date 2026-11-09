@@ -5,12 +5,14 @@ import { FontFamily, Opacity, Radius, Spacing } from '@/constants/theme';
 import type { Item } from '@/db/types';
 import { useDb } from '@/db/hooks';
 import { toggleTaskDone } from '@/features/items/repository';
+import { restoreSnapshot, snapshotOf } from '@/features/items/snapshot';
 import type { Occurrence } from '@/features/calendar/agenda';
 import { editOccurrence, openOccurrence } from '@/features/calendar/open';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { fmtRelDay, fmtTime, startOfDay } from '@/lib/dates';
+import { toast } from '@/lib/toast-store';
 
 import { Icon } from './icon';
 import { ThemedText } from './themed-text';
@@ -67,6 +69,13 @@ export function ItemRow({
   const done = item.completedAt != null;
   const { parts, overdue } = taskMeta(item, now, { progress, hideProject });
 
+  // Completing says so and can be undone (a recurring task goes back to its previous date).
+  const complete = async () => {
+    const before = snapshotOf(item);
+    await toggleTaskDone(db, item.id);
+    if (!done) toast(`Hotovo: ${item.title || t.common.untitled}`, { undo: () => void restoreSnapshot(db, item.id, before) });
+  };
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -77,7 +86,7 @@ export function ItemRow({
         pressed && { backgroundColor: theme.surface2 },
       ]}>
       {isTask ? (
-        <Checkbox checked={done} color={item.color} label={item.title} onPress={() => void toggleTaskDone(db, item.id)} />
+        <Checkbox checked={done} color={item.color} label={item.title} onPress={() => void complete()} />
       ) : (
         <View style={[styles.dot, { backgroundColor: item.color ?? (item.type === 'event' ? theme.mark : theme.text2) }]} />
       )}

@@ -1,4 +1,5 @@
-import { Motion } from '@/constants/theme';
+/** How long a toast stays (3.8 s, design token `motion.toastDurationMs`). */
+export const TOAST_DURATION_MS = 3800;
 
 /** One visible toast. `undo` restores the state before the action it announces. */
 export type ToastState = {
@@ -41,7 +42,7 @@ export function getToast(): ToastState | null {
 /** Shows a toast (replacing any visible one). Safe to call from anywhere, also outside React. */
 export function toast(message: string, opts: { undo?: () => void | Promise<void>; durationMs?: number } = {}): void {
   counter += 1;
-  emit({ id: counter, message, undo: opts.undo ?? null, durationMs: opts.durationMs ?? Motion.toastDurationMs });
+  emit({ id: counter, message, undo: opts.undo ?? null, durationMs: opts.durationMs ?? TOAST_DURATION_MS });
 }
 
 export function dismissToast(id?: number): void {

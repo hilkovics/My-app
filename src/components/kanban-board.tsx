@@ -8,10 +8,12 @@ import { Opacity, Radius } from '@/constants/theme';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import type { Item, TaskStatus } from '@/db/types';
 import { listBoardTasks, setTaskStatus } from '@/features/items/repository';
+import { restoreSnapshot, snapshotOf } from '@/features/items/snapshot';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
 import { fmtRelDay, fmtTime, startOfDay } from '@/lib/dates';
+import { toast } from '@/lib/toast-store';
 
 import { useGuardedCreate } from './plan/capacity-guard';
 import { STATUSES, StatusPicker } from './status-picker';
@@ -35,7 +37,9 @@ export function KanbanBoard({ projectId }: { projectId?: string | null }) {
     const current: TaskStatus = item.completedAt != null ? 'done' : (item.status ?? 'todo');
     const target = STATUSES[STATUSES.indexOf(current) + dir];
     if (!target) return;
+    const before = snapshotOf(item);
     const updated = await setTaskStatus(db, item.id, target);
+    if (target === 'done') toast(`Hotovo: ${item.title || t.common.untitled}`, { undo: () => void restoreSnapshot(db, item.id, before) });
     // Moving into "waiting" without saying for whom: offer to fill it in.
     if (target === 'waiting' && !updated.waitingFor) setPicking(updated);
   };
