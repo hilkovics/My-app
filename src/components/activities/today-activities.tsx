@@ -1,21 +1,18 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { FontFamily, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Radius } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
 import {
   getRunningActivity,
   listActivities,
   listLogs,
   logCheck,
-  logDuration,
   startActivity,
   type Activity,
   type ActivityLog,
 } from '@/features/activities/repository';
 import { dayStreak, dayValues, isScheduled, weekValue } from '@/features/activities/stats';
-import { fmtClock } from '@/features/focus/stats';
-import { useChartColors } from '@/hooks/use-chart-colors';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
@@ -24,8 +21,8 @@ import { toast } from '@/lib/toast-store';
 
 import { Icon } from '../icon';
 import { ThemedText } from '../themed-text';
-import { Button, Card, Row, Section } from '../ui';
-import { stopAndFinish } from './activities-panel';
+import { Section } from '../ui';
+import { RunningCard } from './activities-panel';
 
 function useTodayActivities() {
   const now = useNow(1000);
@@ -43,29 +40,11 @@ function useTodayActivities() {
 
 /** Card with the running activity timer (2 px border in the activity colour). Null when nothing runs. */
 export function RunningActivityCard() {
-  const db = useDb();
-  const theme = useTheme();
-  const { activity: color } = useChartColors();
   const { now, data } = useTodayActivities();
   const run = data?.running;
-  const activity = run ? data.activities.find((a) => a.id === run.activityId) : null;
+  const activity = run ? data.activities.find((a) => a.id === run.activityId) : undefined;
   if (!run || !activity) return null;
-  const c = color(activity.colorSlot);
-  return (
-    <Card style={[styles.running, { borderColor: c, borderWidth: 2 }]}>
-      <Pressable accessibilityRole="button" onPress={() => router.navigate('/progress')}>
-        <ThemedText type="label" themeColor="text2">
-          {run.pausedAt ? 'POZASTAVENÉ' : 'BEŽÍ'} · {activity.icon} {activity.name.toUpperCase()}
-        </ThemedText>
-        <ThemedText type="timerCard" tabular style={{ color: theme.text }}>
-          {fmtClock(logDuration(run, now))}
-        </ThemedText>
-      </Pressable>
-      <Row>
-        <Button small variant="ink" icon="stop" label={t.focus.stop} onPress={() => void stopAndFinish(db)} />
-      </Row>
-    </Card>
-  );
+  return <RunningCard run={run} activity={activity} now={now} />;
 }
 
 /** Aktivity: 3-column tile grid. Check habits: tap +1, long press −1. Timed: tap starts the timer. */
@@ -181,7 +160,6 @@ function ActivityTile({
 }
 
 const styles = StyleSheet.create({
-  running: { gap: Spacing.two },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tile: { flexBasis: '30%', flexGrow: 1, maxWidth: '33%', minWidth: 96, borderRadius: Radius.card, padding: 14, gap: 2 },
   tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 32 },

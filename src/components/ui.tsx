@@ -173,11 +173,11 @@ export function Empty({ text }: { text: string }) {
 
 // ---------------------------------------------------------------- Buttons
 
-export type ButtonVariant = 'primary' | 'ink' | 'secondary' | 'outline' | 'inkOutline' | 'danger' | 'dangerSoft' | 'ghost' | 'onAccent';
+export type ButtonVariant = 'primary' | 'ink' | 'secondary' | 'outline' | 'inkOutline' | 'heroOutline' | 'dashed' | 'danger' | 'dangerSoft' | 'ghost' | 'onAccent';
 
 /**
  * Pill button. primary = accent, ink = inverted, secondary = surface2, outline = 2 px border,
- * inkOutline = outline on an ink card, danger / dangerSoft, ghost = text button in the accent colour,
+ * dashed = dashed outline ("+ Nová aktivita"), inkOutline = outline on an ink card, heroOutline = outline in an accent hero zone, danger / dangerSoft, ghost = text button in the accent colour,
  * onAccent = for hero zones.
  * Sizes: default 52, small 36, hero 64. Pressed scales to 0.97; focus shows a 3 + 3 px ring.
  */
@@ -206,12 +206,14 @@ export function Button({
 }) {
   const theme = useTheme();
   const [focused, setFocused] = useState(false);
-  const base: Record<ButtonVariant, { bg: string; pressed: string; fg: string; border?: string }> = {
+  const base: Record<ButtonVariant, { bg: string; pressed: string; fg: string; border?: string; dashed?: boolean }> = {
     primary: { bg: theme.accent, pressed: theme.accentPressed, fg: theme.onAccent },
     ink: { bg: theme.ink, pressed: theme.ink, fg: theme.onInk },
     secondary: { bg: theme.surface2, pressed: theme.surface2, fg: theme.text },
     outline: { bg: 'transparent', pressed: 'transparent', fg: theme.text, border: theme.border },
     inkOutline: { bg: 'transparent', pressed: 'transparent', fg: theme.onInk, border: hexA(theme.onInk, 0.5) },
+    heroOutline: { bg: 'transparent', pressed: 'transparent', fg: theme.onAccent, border: theme.onAccent },
+    dashed: { bg: 'transparent', pressed: 'transparent', fg: theme.text, border: theme.text2, dashed: true },
     danger: { bg: theme.danger, pressed: theme.danger, fg: '#FFFFFF' },
     dangerSoft: { bg: theme.dangerSoft, pressed: theme.dangerSoft, fg: theme.dangerText },
     ghost: { bg: 'transparent', pressed: 'transparent', fg: theme.mark },
@@ -238,7 +240,8 @@ export function Button({
           paddingHorizontal: small ? 14 : hero ? 28 : 22,
           backgroundColor: disabled && variant === 'primary' ? theme.surface2 : pressed ? v.pressed : v.bg,
           borderColor: v.border,
-          borderWidth: v.border ? 2 : 0,
+          borderWidth: v.border ? (v.dashed ? 1.5 : 2) : 0,
+          borderStyle: v.dashed ? 'dashed' : 'solid',
           opacity: disabled ? Opacity.disabled : 1,
           transform: [{ scale: pressed && !disabled ? Motion.pressScale : 1 }],
         },
@@ -250,6 +253,15 @@ export function Button({
         {label}
       </ThemedText>
     </Pressable>
+  );
+}
+
+/** Square entity tile (project / activity / goal): emoji on the entity colour, radius 14. */
+export function EntityTile({ icon, color, size = 48 }: { icon: string; color: string; size?: number }) {
+  return (
+    <View style={{ width: size, height: size, borderRadius: Radius.tile, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <ThemedText style={{ fontSize: size * 0.5, lineHeight: size * 0.62 }}>{icon}</ThemedText>
+    </View>
   );
 }
 
@@ -545,7 +557,7 @@ export function Meter({
 }
 
 /** Small stat card: label, big value, sub line. */
-export function StatTile({ label, value, sub, onPress, children }: { label: string; value: string; sub?: string; onPress?: () => void; children?: ReactNode }) {
+export function StatTile({ label, value, sub, onPress, children, basis }: { label: string; value: string; sub?: string; onPress?: () => void; children?: ReactNode; basis?: ViewStyle['flexBasis'] }) {
   const theme = useTheme();
   const body = (
     <View style={[styles.tile, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -564,11 +576,11 @@ export function StatTile({ label, value, sub, onPress, children }: { label: stri
     </View>
   );
   return onPress ? (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}${sub ? `, ${sub}` : ''}`} onPress={onPress} style={styles.flex}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}${sub ? `, ${sub}` : ''}`} onPress={onPress} style={[styles.flex, basis != null && { flexBasis: basis }]}>
       {body}
     </Pressable>
   ) : (
-    <View style={styles.flex}>{body}</View>
+    <View style={[styles.flex, basis != null && { flexBasis: basis }]}>{body}</View>
   );
 }
 
@@ -584,7 +596,7 @@ const styles = StyleSheet.create({
   button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   fabButton: { width: Layout.fabSize, height: Layout.fabSize, borderRadius: Radius.fab, alignItems: 'center', justifyContent: 'center' },
-  chip: { height: 38, paddingHorizontal: 14, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
+  chip: { height: 38, paddingHorizontal: 14, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start', maxWidth: '100%' },
   swatch: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   segmented: { flexDirection: 'row', padding: 3, gap: 2 },
   segment: { flex: 1, alignItems: 'center', justifyContent: 'center' },

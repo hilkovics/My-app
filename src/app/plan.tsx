@@ -1,5 +1,5 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,7 +12,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Chip, Empty, IconButton, Meter, Section } from '@/components/ui';
 import { FontFamily, Layout, Radius, Spacing, Viz } from '@/constants/theme';
 import { useDb, useLiveQuery } from '@/db/hooks';
-import { finishDueFocus, pauseFocus, resumeFocus, stopFocus } from '@/features/focus/controller';
+import { pauseFocus, resumeFocus, stopFocus } from '@/features/focus/controller';
 import { getRunningSession, listSessions, pomodoroEndsAt } from '@/features/focus/repository';
 import { fmtClock, fmtMinutes, hm, sessionDuration } from '@/features/focus/stats';
 import { listUnscheduledTasks, updateItem } from '@/features/items/repository';
@@ -42,11 +42,8 @@ export default function PlanScreen() {
   const sessions = useLiveQuery((d) => listSessions(d, day, addDays(day, 1)), [day]) ?? [];
   const backlog = (useLiveQuery((d) => listUnscheduledTasks(d), []) ?? []).filter((i) => i.dueAt == null);
 
-  // A Pomodoro whose time is up ends by itself (also while this screen is open).
+  // A Pomodoro whose time is up is finished by the global FocusWatcher.
   const endsAt = running ? pomodoroEndsAt(running) : null;
-  useEffect(() => {
-    if (endsAt != null && now >= endsAt) void finishDueFocus(db);
-  }, [db, endsAt, now]);
 
   if (!plan) return <View style={{ flex: 1, backgroundColor: theme.bg }} />;
 

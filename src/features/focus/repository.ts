@@ -185,6 +185,24 @@ export async function deleteSession(db: Db, id: string): Promise<void> {
   notifyChange();
 }
 
+/** Puts a deleted session back (undo of a delete), keeping its id. */
+export async function restoreSession(db: Db, s: FocusSession): Promise<void> {
+  await db.runAsync(
+    'INSERT OR REPLACE INTO focus_sessions (id, mode, started_at, ended_at, planned_minutes, paused_at, paused_ms, item_id, tag, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    s.id,
+    s.mode,
+    s.startedAt,
+    s.endedAt,
+    s.plannedMinutes,
+    s.pausedAt,
+    s.pausedMs,
+    s.itemId,
+    s.tag,
+    s.note,
+  );
+  notifyChange();
+}
+
 /** Total worked minutes on an item (finished and running sessions). */
 export async function itemFocusMinutes(db: Db, itemId: string, now = Date.now()): Promise<number> {
   const rows = await db.getAllAsync<Row>(`${SELECT} WHERE f.item_id = ?`, itemId);

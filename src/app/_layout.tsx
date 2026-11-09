@@ -13,6 +13,7 @@ import { AppState, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfirmDialogHost } from '@/components/confirm-dialog';
+import { FocusWatcher } from '@/components/focus/focus-watcher';
 import { ToastHost } from '@/components/toast';
 import { FontFamily } from '@/constants/theme';
 import { useDb } from '@/db/hooks';
@@ -85,6 +86,7 @@ export default function RootLayout() {
       <ThemeProvider value={navTheme}>
         <SQLiteProvider databaseName="planovac.db" onInit={initDb}>
           <AppServices />
+          <FocusWatcher />
           <Stack
             screenOptions={{
               headerBackTitle: 'Späť',
