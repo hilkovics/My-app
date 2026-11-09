@@ -14,7 +14,7 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 
 | Záložka | Čo robí |
 | --- | --- |
-| **Dnes** | Karta **Plán dňa** (prstenec, zaťaženie voči kapacite, upozornenia), program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, aktivity, pripnuté poznámky, denník |
+| **Dnes** | Farebná hlavička s motivačným textom podľa kapacity, veľkým číslom naplánovaného času a **pásom dňa** (7:00–23:00); karta **Teraz** so štartom Pomodora, Fokus a séria, program dňa (vlastné udalosti, udalosti z telefónu, naplánované úlohy), úlohy na dnes vrátane oneskorených, aktivity ako dlaždice (ťuknutie +1, podržanie −1), pripnuté poznámky, denník |
 | **Kalendár** | Mesiac, týždeň a deň. **Ťuknutie na udalosť otvorí rovno poznámky k tomuto termínu** (podržanie = úprava udalosti). **Time-blocking:** vyber neplánovanú úlohu a ťukni na čas v kalendári. Ťuknutie na prázdny čas vytvorí udalosť |
 | **Úlohy** | Prepínač **Zoznam / Nástenka / Projekty**. Zoznam: Inbox, Dnes, Naplánované, Hotové a rýchle pridávanie po slovensky; opakované úlohy sa po splnení posunú na ďalší termín. **Nástenka (Kanban)** so stavmi Na urobenie / Rozpracované / Čaká na… / Hotové. **Projekty** s progresom úloh |
 | **Poznámky** | Hľadanie, filtrovanie podľa štítkov, pripnutie, denník (jedna poznámka na deň), checklisty |
@@ -22,7 +22,7 @@ checklist, štítky, opakovanie a upozornenia. **Pripomienka** je upozornenie pr
 
 ### Plán dňa (čas, náročnosť a kapacita)
 
-Návrh podľa pokynov „Vizuálne zobrazenie úloh a času“: ťuknutím na kartu **Plán dňa** na obrazovke Dnes.
+Návrh podľa pokynov „Vizuálne zobrazenie úloh a času“: otvoríš ho tlačidlom **Otvoriť plán dňa →** v hlavičke obrazovky Dnes.
 
 - **Odhad trvania** úlohy (5 min – 3 h; aj v rýchlom pridávaní: „na 90 min“). Úloha bez odhadu sa počíta ako ~30 min.
 - **Náročnosť** záznamu: 🔥 hlboká práca / rutina (predvolená) / ☕ pauza. Hlboká práca je sýta s hrubým okrajom,
@@ -110,6 +110,26 @@ Rozpozná sa: `dnes/zajtra/pozajtra`, dni v týždni (`v piatok`, `vo štvrtok`)
 čas `15:00`, `o 9`, `15h`, rozsah `15:00-16:30`, trvanie `na 30 min`, opakovanie `každý deň/týždeň/mesiac/rok`,
 `každý pondelok`, `každý pracovný deň`, priorita `!1`–`!3`, štítky `#štítok`, upozornenie `pripomeň 15 min vopred`.
 
+## Vzhľad (dizajn „Impulz“)
+
+Vzhľad je prevedený z dodaného návrhu (`design_handoff_planovac_impulz`): tmavá téma **Nočné indigo** a svetlá
+**Indigo** podľa nastavenia systému, písmo **Manrope** (500–800, čísla s tabuľkovými ciframi), zaoblené farebne
+blokované prvky s dotykovými plochami aspoň 44 px.
+
+- **Tokeny** sú v `src/constants/theme.ts` (farby, typová škála, polomery, tiene, rozmery grafov); farba sa nikdy
+  nezapisuje priamo do obrazoviek. `src/lib/color.ts`: `hexA` (priehľadnosť) a `onColor` (text na farbe: svietivosť
+  nad 0,18 → tmavý text, inak biely).
+- **Prvky** (`src/components/ui.tsx`): `Screen`, `Section`, `Card`, `Button` (varianty), `IconButton`, `Chip`, `Swatch`,
+  `Segmented`, `Checkbox`, `Input`, `Meter`, `StatTile`, `EntityTile`, `Fab`.
+- **Globálne**: `Toast` s tlačidlom **Späť** (3,8 s; splnenie úlohy, rýchle pridanie, naplánovanie, „Do tohto dňa“,
+  zmazanie záznamu práce), `ConfirmDialog` (nahrádza natívne okná), `BottomSheet`, sledovač Pomodora a prestávky
+  (`FocusWatcher`), stavový riadok podľa zóny pod ním.
+- **Pravidlá správania sa nemenia:** ťuknutie na udalosť otvára poznámky k termínu, nástenka sa presúva tlačidlami
+  ◀ ▶, všetko sa ukladá automaticky, texty sú po slovensky (pevné medzery v „1 h 15 min“).
+- **Kalendár:** Deň 7:00–22:00 (56 px/h), Týždeň 7:00–20:00 (36 px/h); prvá zobrazená hodina sa berie z Nastavení.
+  Udalosti mimo rozsahu sú vidieť v Mesiaci a v zoznamoch.
+- Mimo rozsahu: úvodné obrazovky, vysvetlenia povolení, ilustrácie prázdnych stavov, kostry načítavania, widgety a ikona.
+
 ## Spustenie
 
 ```bash
@@ -134,12 +154,11 @@ npx expo lint
 ```
 src/
   app/                      # obrazovky (expo-router)
-    (tabs)/                 # Dnes, Kalendár, Úlohy, Poznámky, Návyky
+    (tabs)/                 # Dnes, Kalendár, Úlohy, Poznámky, Pokrok
     item/[id].tsx           # detail a úprava záznamu (autosave)
     item/new.tsx            # rýchle pridanie
     item/link.tsx           # prepojenie záznamov
     external/[id].tsx       # udalosť z kalendára telefónu + vlastné poznámky k nej
-    habit/[id].tsx          # úprava návyku a história
     search.tsx, settings.tsx
   db/                       # schéma a migrácie, typy, hooky (useLiveQuery), zbernica zmien
   features/
@@ -154,7 +173,8 @@ src/
     quickadd/parse.ts       # slovenský parser rýchleho pridávania
     backup/                 # JSON záloha, .ics export
     settings/
-  components/               # UI prvky, mesačná mriežka, časová os dňa/týždňa, výber dátumu
+  components/               # UI prvky (ui.tsx), toast, dialógy, mesačná mriežka, časová os dňa/týždňa, prstenec, grafy
+    today/                  # hlavička Dnes, pás dňa, karta Teraz
   lib/                      # dátumy, opakovanie (podmnožina RRULE), pomocné funkcie
   i18n/sk.ts                # všetky texty
 test/                       # node:test testy

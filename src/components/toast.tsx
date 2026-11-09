@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { BottomTabInset, FontFamily, Layout, Radius, Shadow } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -20,7 +20,7 @@ export function ToastHost() {
 
   useEffect(() => {
     if (id == null || duration == null) return;
-    Animated.timing(opacity, { toValue: 1, duration: 160, useNativeDriver: true }).start();
+    Animated.timing(opacity, { toValue: 1, duration: 160, useNativeDriver: Platform.OS !== 'web' }).start();
     const timer = setTimeout(() => dismissToast(id), duration);
     return () => {
       clearTimeout(timer);

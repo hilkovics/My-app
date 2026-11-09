@@ -11,7 +11,6 @@ import { DEFAULT_ESTIMATE_MIN, buildDayPlan, canAdd, findFreeDay, shortenOptions
 import { getSettings } from '@/features/settings/repository';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n/sk';
-import { toast } from '@/lib/toast-store';
 import { DAY, addDays, fmtDateLong, fmtDateLongAcc, startOfDay } from '@/lib/dates';
 
 import { BottomSheet } from '../bottom-sheet';
@@ -92,12 +91,6 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
   const fits = view ? canAdd(view.plan, r.minutes, r.energy).ok : false;
   const options = view ? shortenOptions(view.plan) : [];
 
-  const overBy = view ? Math.max(0, view.plan.plannedMinutes + r.minutes - view.plan.capacityMinutes) : 0;
-  const addAnyway = () => {
-    onProceed(r.day);
-    if (overBy > 0) toast(`⚠ Deň je plný – +${fmtMinutes(overBy)} nad kapacitu`);
-  };
-
   return (
     <BottomSheet visible onClose={onClose} title={`${t.plan.dialog.title} · ${fmtDateLong(r.day)}`} closeLabel={t.plan.dialog.cancel}>
       {view ? (
@@ -146,7 +139,7 @@ function CapacityDialog({ request: r, onClose, onProceed }: { request: GuardRequ
             {t.plan.dialog.noFreeDay}
           </ThemedText>
         ) : null}
-        {!fits ? <Button small variant="secondary" label={t.plan.dialog.addAnyway} onPress={addAnyway} /> : null}
+        {!fits ? <Button small variant="secondary" label={t.plan.dialog.addAnyway} onPress={() => onProceed(r.day)} /> : null}
         <Button small variant="ghost" label={t.plan.dialog.cancel} onPress={onClose} />
       </Row>
     </BottomSheet>

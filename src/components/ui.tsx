@@ -131,8 +131,8 @@ export function Section({ title, right, children, gap = 10 }: { title?: string; 
 export function LinkButton({ label, onPress }: { label: string; onPress: () => void }) {
   const theme = useTheme();
   return (
-    <Pressable accessibilityRole="link" onPress={onPress} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}>
-      <ThemedText type="button" style={{ color: theme.mark }}>
+    <Pressable accessibilityRole="link" onPress={onPress} style={styles.link}>
+      <ThemedText type="button" tabular style={{ color: theme.mark }}>
         {label}
       </ThemedText>
     </Pressable>
@@ -590,6 +590,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingLeft: 20, paddingRight: Layout.screenPaddingX, paddingBottom: Spacing.two },
   fab: { position: 'absolute', right: Layout.fabOffset.right },
+  link: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4, marginVertical: -9 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
   card: { borderRadius: Radius.card, borderWidth: 1, padding: Layout.cardPadding, gap: Spacing.two },
   empty: { paddingVertical: Spacing.two },

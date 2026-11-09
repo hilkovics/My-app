@@ -15,7 +15,7 @@ import { editOccurrence, openOccurrence } from '@/features/calendar/open';
 import { useOccurrences } from '@/features/calendar/use-occurrences';
 import { fmtMinutes } from '@/features/focus/stats';
 import { listUnscheduledTasks, scheduleTask, updateItem } from '@/features/items/repository';
-import { loadDayOccurrences, planSettingsOf } from '@/features/plan/data';
+import { loadDayPlan, planSettingsOf } from '@/features/plan/data';
 import { buildDayPlan } from '@/features/plan/layout';
 import { getSettings } from '@/features/settings/repository';
 import { useNow } from '@/hooks/use-now';
@@ -113,8 +113,7 @@ export default function CalendarScreen() {
           await scheduleTask(db, task.id, start, minutes);
           setPickedTask(null);
           const before = { startAt: task.startAt, endAt: task.endAt, dueAt: task.dueAt, allDay: task.allDay };
-          const s = await getSettings(db);
-          const plan = buildDayPlan(await loadDayOccurrences(db, d, s.deviceCalendarIds), d, planSettingsOf(s));
+          const plan = await loadDayPlan(db, d);
           toast(
             plan.overflowMinutes > 0
               ? `⚠ Deň je plný – +${fmtMinutes(plan.overflowMinutes)} nad kapacitu`

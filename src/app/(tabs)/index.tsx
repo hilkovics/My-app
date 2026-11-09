@@ -1,10 +1,9 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { RunningActivityCard, TodayActivities } from '@/components/activities/today-activities';
 import { ItemRow, OccurrenceRow } from '@/components/item-row';
 import { NoteCard } from '@/components/note-card';
-import { ThemedText } from '@/components/themed-text';
 import { TodayHero } from '@/components/today/hero';
 import { NowCard } from '@/components/today/now-card';
 import { Button, Card, Empty, Fab, LinkButton, Meter, Screen, Section, StatTile } from '@/components/ui';
@@ -75,13 +74,7 @@ export default function TodayScreen() {
 
       <Section
         title={t.today.tasks}
-        right={
-          <Pressable accessibilityRole="link" onPress={() => router.navigate({ pathname: '/tasks', params: { view: 'today' } })} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}>
-            <ThemedText type="button" themeColor="mark" tabular>
-              {doneToday}/{doneToday + tasks.length} · Všetky
-            </ThemedText>
-          </Pressable>
-        }>
+        right={<LinkButton label={`${doneToday}/${doneToday + tasks.length} · Všetky`} onPress={() => router.navigate({ pathname: '/tasks', params: { view: 'today' } })} />}>
         {tasks.length ? (
           <View>
             {tasks.map((it) => (

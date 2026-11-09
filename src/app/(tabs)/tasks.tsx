@@ -11,10 +11,12 @@ import { Chip, Empty, HeaderButtons, Screen, Segmented } from '@/components/ui';
 import { useDb, useLiveQuery, useNow } from '@/db/hooks';
 import { checklistProgress, deleteItem, listTasks, type TaskView } from '@/features/items/repository';
 import { listProjects } from '@/features/projects/repository';
+import { fmtMinutes } from '@/features/focus/stats';
+import { loadDayPlan } from '@/features/plan/data';
 import { parseQuickAdd, toItemInput } from '@/features/quickadd/parse';
 import { QUICK_ADD_HINT, landingView, quickPreview } from '@/features/quickadd/preview';
 import { t } from '@/i18n/sk';
-import { fmtRelDay } from '@/lib/dates';
+import { fmtRelDay, startOfDay } from '@/lib/dates';
 import { toast } from '@/lib/toast-store';
 
 function TaskList({ requested }: { requested: TaskView | undefined }) {
@@ -40,10 +42,15 @@ function TaskList({ requested }: { requested: TaskView | undefined }) {
     const where = parsed.day != null ? fmtRelDay(parsed.day, now) : 'Inbox';
     await create(toItemInput(parsed, 'task'), {
       alerts: parsed.alerts,
-      onCreated: (item) => {
+      onCreated: async (item) => {
         setText('');
         setView(landingView(parsed, now));
-        toast(`Pridané: ${item.title} · ${where}`, { undo: () => void deleteItem(db, item.id) });
+        const anchor = item.startAt ?? item.dueAt;
+        const over = anchor != null ? (await loadDayPlan(db, startOfDay(anchor))).overflowMinutes : 0;
+        // Added to a day that is now over its capacity: say so (the undo stays).
+        toast(over > 0 ? `⚠ Deň je plný – +${fmtMinutes(over)} nad kapacitu` : `Pridané: ${item.title} · ${where}`, {
+          undo: () => void deleteItem(db, item.id),
+        });
       },
     });
   };

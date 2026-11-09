@@ -1,5 +1,7 @@
 # Plánovač: zadanie pre návrh vzhľadu
 
+> **Stav:** podľa tohto zadania vznikol návrh „Impulz“ (`design_handoff_planovac_impulz`) a je implementovaný v aplikácii; popis je v `README.md`, sekcia „Vzhľad“.
+
 Kompletný inventár obrazoviek, prvkov, vizuálnych polí a stavov osobnej mobilnej aplikácie **Plánovač**.
 Obsah je spísaný podľa skutočného kódu (stav k vetve `ccr-aec6776b-4pt5be`), nie podľa predstáv.
 Dnešný vzhľad je funkčný, ale zámerne jednoduchý: dizajnér ho môže zmeniť celý. Všetko, čo sa nesmie zmeniť
