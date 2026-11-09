@@ -173,11 +173,12 @@ export function Empty({ text }: { text: string }) {
 
 // ---------------------------------------------------------------- Buttons
 
-export type ButtonVariant = 'primary' | 'ink' | 'secondary' | 'outline' | 'danger' | 'dangerSoft' | 'ghost' | 'onAccent';
+export type ButtonVariant = 'primary' | 'ink' | 'secondary' | 'outline' | 'inkOutline' | 'danger' | 'dangerSoft' | 'ghost' | 'onAccent';
 
 /**
  * Pill button. primary = accent, ink = inverted, secondary = surface2, outline = 2 px border,
- * danger / dangerSoft, ghost = text button in the accent colour, onAccent = for hero zones.
+ * inkOutline = outline on an ink card, danger / dangerSoft, ghost = text button in the accent colour,
+ * onAccent = for hero zones.
  * Sizes: default 52, small 36, hero 64. Pressed scales to 0.97; focus shows a 3 + 3 px ring.
  */
 export function Button({
@@ -210,6 +211,7 @@ export function Button({
     ink: { bg: theme.ink, pressed: theme.ink, fg: theme.onInk },
     secondary: { bg: theme.surface2, pressed: theme.surface2, fg: theme.text },
     outline: { bg: 'transparent', pressed: 'transparent', fg: theme.text, border: theme.border },
+    inkOutline: { bg: 'transparent', pressed: 'transparent', fg: theme.onInk, border: hexA(theme.onInk, 0.5) },
     danger: { bg: theme.danger, pressed: theme.danger, fg: '#FFFFFF' },
     dangerSoft: { bg: theme.dangerSoft, pressed: theme.dangerSoft, fg: theme.dangerText },
     ghost: { bg: 'transparent', pressed: 'transparent', fg: theme.mark },

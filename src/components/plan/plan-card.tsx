@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { FontFamily, Spacing } from '@/constants/theme';
+import { FontFamily, Radius, Viz } from '@/constants/theme';
 import type { PlanEntry } from '@/features/plan/layout';
 import { fmtMinutes } from '@/features/focus/stats';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,14 +11,16 @@ import { ThemedText } from '../themed-text';
 import { ENERGY_ICON, ENERGY_LABEL, entryStyle } from './energy-style';
 
 /**
- * One block of the day. Its height comes from `dimensions` and is strictly proportional to the
- * duration; entries up to 15 minutes are thin strips without padding. Text is only drawn where it fits.
+ * One block of the day. Its height comes from `dimensions` (strictly proportional to the duration,
+ * 80 px per hour) minus the 3 px gap; below 30 px it is a thin strip (12 px title, no padding), the
+ * second line appears from 42 px. Past blocks of today are at 45 %.
  */
 export function PlanCard({
   entry,
   selected,
   dimmed,
   focused,
+  past,
   countdown,
   onPress,
 }: {
@@ -27,16 +29,17 @@ export function PlanCard({
   /** Focus mode: everything but the active card is dimmed. */
   dimmed?: boolean;
   focused?: boolean;
+  /** Already over (today only). */
+  past?: boolean;
   /** Remaining time of the running timer (focus mode). */
   countdown?: string | null;
   onPress: () => void;
 }) {
   const theme = useTheme();
   const st = entryStyle(entry, theme);
-  const h = entry.dimensions.height;
-  const compact = entry.dimensions.compact;
-  const showTitle = h >= 18;
-  const showMeta = h >= 42;
+  const h = Math.max(1, entry.dimensions.height - Viz.schedule.gap);
+  const thin = h < Viz.schedule.thinBelowPx;
+  const showMeta = h >= Viz.schedule.showSecondLineFromPx;
   const end = entry.start != null ? entry.start + entry.durationMin * 60_000 : null;
   const meta = [
     entry.start != null ? `${fmtTime(entry.start)}–${fmtTime(end!)}` : t.plan.noSpot,
@@ -56,32 +59,36 @@ export function PlanCard({
       style={[
         styles.card,
         st.box,
-        { height: h },
-        compact ? styles.compact : styles.padded,
-        selected && { borderColor: theme.text, borderWidth: Math.max(2, entry.visual_intensity.border_width) },
-        focused && { shadowColor: theme.accent, shadowOpacity: 0.9, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 8, borderColor: theme.accent },
-        dimmed && { opacity: 0.12 },
+        { height: h, opacity: dimmed ? 0.12 : past ? 0.45 : 1 },
+        thin ? styles.thin : styles.padded,
+        selected && { borderColor: theme.text, borderWidth: 2 },
+        focused && { borderColor: theme.accent, borderWidth: 2 },
       ]}>
-      {showTitle ? (
-        <View style={styles.row}>
-          <ThemedText type="small" numberOfLines={1} style={[styles.title, { color: st.text }, compact && styles.compactText, entry.done && styles.done]}>
-            {icon ? `${icon} ` : ''}
-            {entry.overflow ? '⚠ ' : ''}
-            {entry.title || t.common.untitled}
+      <View style={styles.row}>
+        <ThemedText
+          numberOfLines={1}
+          style={[
+            styles.title,
+            { color: st.text },
+            thin && styles.thinText,
+            entry.done && styles.done,
+          ]}>
+          {entry.overflow ? '⚠ ' : ''}
+          {icon ? `${icon} ` : ''}
+          {entry.title || t.common.untitled}
+        </ThemedText>
+        {focused && countdown ? (
+          <ThemedText type="bodySmall" tabular style={{ color: st.text, fontFamily: FontFamily[800] }}>
+            {countdown}
           </ThemedText>
-          {focused && countdown ? (
-            <ThemedText type="smallBold" style={{ color: st.text }}>
-              {countdown}
-            </ThemedText>
-          ) : compact ? (
-            <ThemedText type="small" style={[styles.compactText, { color: st.muted }]}>
-              {fmtMinutes(entry.durationMin)}
-            </ThemedText>
-          ) : null}
-        </View>
-      ) : null}
+        ) : thin ? (
+          <ThemedText type="axis" tabular style={[styles.thinText, { color: st.muted }]}>
+            {fmtMinutes(entry.durationMin)}
+          </ThemedText>
+        ) : null}
+      </View>
       {showMeta ? (
-        <ThemedText type="small" numberOfLines={1} style={{ color: st.muted }}>
+        <ThemedText type="meta" tabular numberOfLines={1} style={{ color: st.muted, opacity: 0.9 }}>
           {meta.join(' · ')}
         </ThemedText>
       ) : null}
@@ -90,11 +97,11 @@ export function PlanCard({
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 6, overflow: 'hidden', justifyContent: 'center' },
-  padded: { paddingHorizontal: Spacing.two, paddingVertical: 2 },
-  compact: { paddingHorizontal: 6, paddingVertical: 0 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  title: { flex: 1, fontFamily: FontFamily[700] },
-  compactText: { fontSize: 11, lineHeight: 14 },
+  card: { borderRadius: Radius.planBlock, overflow: 'hidden', justifyContent: 'center' },
+  padded: { paddingHorizontal: 14, paddingVertical: 4 },
+  thin: { paddingHorizontal: 10, paddingVertical: 0 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { flex: 1, fontFamily: FontFamily[800], fontSize: 15, lineHeight: 20 },
+  thinText: { fontSize: 12, lineHeight: 15 },
   done: { textDecorationLine: 'line-through' },
 });
