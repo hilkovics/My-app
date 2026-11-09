@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   checkbox: { width: 28, height: 28, borderRadius: 14, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   field: { gap: 6 },
   inputWrap: { gap: 6 },
-  input: { minHeight: 52, borderRadius: Radius.input, paddingVertical: 11 },
+  input: { minHeight: 52, borderRadius: Radius.input, paddingVertical: 11, outlineStyle: 'none' as never },
   inputMultiline: { minHeight: 100, textAlignVertical: 'top', paddingTop: 14 },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   tile: { borderRadius: Radius.card, borderWidth: 1, paddingVertical: 14, paddingHorizontal: 16, gap: 2 },

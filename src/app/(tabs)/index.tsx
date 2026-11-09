@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { RunningActivityCard, TodayActivities } from '@/components/activities/today-activities';
 import { ItemRow, OccurrenceRow } from '@/components/item-row';
+import { NoteCard } from '@/components/note-card';
 import { ThemedText } from '@/components/themed-text';
 import { TodayHero } from '@/components/today/hero';
 import { NowCard } from '@/components/today/now-card';
@@ -97,7 +98,7 @@ export default function TodayScreen() {
       <Section
         title={t.today.pinned}
         right={<Button small variant="secondary" icon="book" label={t.today.journal} onPress={() => void openJournal()} />}>
-        {pinned.length ? <View>{pinned.map((n) => <ItemRow key={n.id} item={n} now={now} />)}</View> : null}
+        {pinned.length ? <View>{pinned.map((n) => <NoteCard key={n.id} item={n} progress={progress?.get(n.id)} />)}</View> : null}
       </Section>
     </Screen>
   );

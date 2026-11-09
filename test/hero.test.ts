@@ -122,3 +122,26 @@ describe('quick-add preview', () => {
     assert.equal(landingView(parseQuickAdd('zajtra report', NOW), NOW), 'upcoming');
   });
 });
+
+describe('note card text', () => {
+  it('cuts the preview at about 90 characters', async () => {
+    const { notePreview } = await import('../src/features/items/note-meta');
+    assert.equal(notePreview('Krátka\n\npoznámka  s   medzerami'), 'Krátka poznámka s medzerami');
+    const long = 'a'.repeat(120);
+    const p = notePreview(long);
+    assert.ok(p.endsWith('…'));
+    assert.equal(p.length, 91);
+    assert.equal(notePreview(''), '');
+  });
+
+  it('joins the existing parts of the meta line', async () => {
+    const { noteMeta } = await import('../src/features/items/note-meta');
+    assert.equal(
+      noteMeta({ tags: ['osobné'], event: 'po 9. 11. 10:00', project: 'Koncert', checklist: { done: 2, total: 6 } }),
+      '#osobné · 📅 po 9. 11. 10:00 · 📁 Koncert · ☑ 2/6',
+    );
+    assert.equal(noteMeta({ tags: [], project: '📁 Koncert' }), '📁 Koncert');
+    assert.equal(noteMeta({ tags: ['a', 'b'], checklist: { done: 0, total: 0 } }), '#a #b');
+    assert.equal(noteMeta({ tags: [] }), '');
+  });
+});
